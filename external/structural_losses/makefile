@@ -1,6 +1,9 @@
-nvcc = /usr/local/cuda-8.0/bin/nvcc
-cudalib =  /usr/local/cuda-8.0/lib64
-tensorflow = /orions4-zfs/projects/optas/Virt_Env/tf_1.3/lib/python2.7/site-packages/tensorflow/include
+# Configured for Google Colab
+
+nvcc = /usr/local/cuda/bin/nvcc
+cudalib =  /usr/local/cuda/lib64
+#tensorflow = /usr/local/lib/python3.6/dist-packages/tensorflow/include
+tensorflow = /usr/local/lib/python2.7/dist-packages/tensorflow/include
 
 all: tf_approxmatch_so.so tf_approxmatch_g.cu.o tf_nndistance_so.so tf_nndistance_g.cu.o
 
