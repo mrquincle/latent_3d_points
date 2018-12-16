@@ -60,25 +60,25 @@ if __name__=='__main__':
 			trainloss,_=sess.run([loss,train])
 			newt=time.time()
 			best=min(best,newt-t1)
-			print i,trainloss,(newt-t0)/(i+1),best
+			print (i,trainloss,(newt-t0)/(i+1),best)
 			t1=newt
-		#print sess.run([inp1,retb,inp2,retd])
+		#print (sess.run([inp1,retb,inp2,retd]))
 		#grads=compute_gradient([inp1,inp2],[(16,32,3),(16,32,3)],loss,(1,),[xyz1,xyz2])
 		#for i,j in grads:
-			#print i.shape,j.shape,np.mean(np.abs(i-j)),np.mean(np.abs(i)),np.mean(np.abs(j))
+			#print (i.shape,j.shape,np.mean(np.abs(i-j)),np.mean(np.abs(i)),np.mean(np.abs(j)))
 		#for i in xrange(10):
 			#t0=time.time()
 			#a,b,c,d=sess.run([reta,retb,retc,retd],feed_dict={inp1:xyz1,inp2:xyz2})
-			#print 'time',time.time()-t0
-		#print a.shape,b.shape,c.shape,d.shape
-		#print a.dtype,b.dtype,c.dtype,d.dtype
+			#print ('time',time.time()-t0)
+		#print (a.shape,b.shape,c.shape,d.shape)
+		#print (a.dtype,b.dtype,c.dtype,d.dtype)
 		#samples=np.array(random.sample(range(xyz2.shape[1]),100),dtype='int32')
 		#dist1=((xyz1[:,samples,None,:]-xyz2[:,None,:,:])**2).sum(axis=-1).min(axis=-1)
 		#idx1=((xyz1[:,samples,None,:]-xyz2[:,None,:,:])**2).sum(axis=-1).argmin(axis=-1)
-		#print np.abs(dist1-a[:,samples]).max()
-		#print np.abs(idx1-b[:,samples]).max()
+		#print (np.abs(dist1-a[:,samples]).max())
+		#print (np.abs(idx1-b[:,samples]).max())
 		#dist2=((xyz2[:,samples,None,:]-xyz1[:,None,:,:])**2).sum(axis=-1).min(axis=-1)
 		#idx2=((xyz2[:,samples,None,:]-xyz1[:,None,:,:])**2).sum(axis=-1).argmin(axis=-1)
-		#print np.abs(dist2-c[:,samples]).max()
-		#print np.abs(idx2-d[:,samples]).max()
+		#print (np.abs(dist2-c[:,samples]).max())
+		#print (np.abs(idx2-d[:,samples]).max())
 

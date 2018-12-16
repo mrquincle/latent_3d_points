@@ -122,7 +122,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=True, se
     for i in xrange(n_ref):
         best_in_all_batches = []
         if verbose and i % 50 == 0:
-            print i
+            print (i)
         for sample_chunk in iterate_in_chunks(sample_pcs, batch_size):
             feed_dict = {ref_pl: np.expand_dims(ref_pcs[i], 0), sample_pl: sample_chunk}
             b = sess.run(best_in_batch, feed_dict=feed_dict)
@@ -171,7 +171,7 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose
         loc_in_all_batches = []
 
         if verbose and i % 50 == 0:
-            print i
+            print (i)
 
         for ref_chunk in iterate_in_chunks(ref_pcs, batch_size):
             feed_dict = {ref_pl: np.expand_dims(sample_pcs[i], 0), sample_pl: ref_chunk}
