@@ -11,8 +11,12 @@ nvcc_flags=--expt-relaxed-constexpr
 # does not work, but whatever
 x_flags=-Xcompiler -Wno-return-type
 
-ld_flags=-L$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_lib())') -ltensorflow_framework
-all: tf_approxmatch_so.so tf_approxmatch_g.cu.o tf_nndistance_so.so tf_nndistance_g.cu.o
+tf_lib=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_lib())')
+
+ld_flags=-L$(tf_lib) -ltensorflow_framework
+
+#all: tf_approxmatch_so.so tf_approxmatch_g.cu.o tf_nndistance_so.so tf_nndistance_g.cu.o
+all: tf_approxmatch_so.so tf_nndistance_so.so
 
 tf_approxmatch_so.so: tf_approxmatch_g.cu.o tf_approxmatch.cpp
 	g++ -std=c++11 tf_approxmatch.cpp tf_approxmatch_g.cu.o -o tf_approxmatch_so.so -shared -fPIC -I $(tensorflow) -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)

@@ -1,2 +1,2 @@
 cd external/structural_losses
-make
+make all
