@@ -3,8 +3,10 @@
 nvcc=/usr/local/cuda/bin/nvcc
 cudalib=/usr/local/cuda/lib64
 
-# Print statements without ()
-python=python2.7
+# !find / -name cuda_config.h only returns 3.6 lib
+#
+#
+python=python3.6
 
 tensorflow=/usr/local/lib/$(python)/dist-packages/tensorflow
 
