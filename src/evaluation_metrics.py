@@ -119,7 +119,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=True, se
                                                                                   sess=sess, use_sqrt=use_sqrt,
                                                                                   use_EMD=use_EMD)
     matched_dists = []
-    for i in xrange(n_ref):
+    for i in range(n_ref):
         best_in_all_batches = []
         if verbose and i % 50 == 0:
             print (i)
@@ -166,7 +166,7 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose
                                                                                             use_EMD=use_EMD)
     matched_gt = []
     matched_dist = []
-    for i in xrange(n_sam):
+    for i in range(n_sam):
         best_in_all_batches = []
         loc_in_all_batches = []
 

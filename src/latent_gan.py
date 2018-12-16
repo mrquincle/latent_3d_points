@@ -74,7 +74,7 @@ class LatentGAN(GAN):
         is_training(True, session=self.sess)
         try:
             # Loop over all batches
-            for _ in xrange(n_batches):
+            for _ in range(n_batches):
                 feed, _, _ = train_data.next_batch(batch_size)
 
                 # Update discriminator.

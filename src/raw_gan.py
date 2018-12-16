@@ -76,7 +76,7 @@ class RawGAN(GAN):
         _fake_s = []
         is_training(True, session=self.sess)
         try:
-            for _ in xrange(n_batches):
+            for _ in range(n_batches):
                 feed, _, _ = train_data.next_batch(batch_size)
                 # Update discriminator.
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
