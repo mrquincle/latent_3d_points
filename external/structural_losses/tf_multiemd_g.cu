@@ -152,7 +152,7 @@ void multiemdLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,fl
 		float * offset2, float * temp, float * distances, int * indices){
 	multiemd<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,temp,distances,indices);
 }
-__global__ void matchcost(int b,int n,int m,const float * __restrict__ xyz1,
+__global__ void multiemdcost(int b,int n,int m,const float * __restrict__ xyz1,
 		const float * __restrict__ xyz2,const float * __restrict__ match,
 		const float * __restrict__ offset1, const float * __restrict__ offset2,
 		float * __restrict__ out){
@@ -198,11 +198,11 @@ __global__ void matchcost(int b,int n,int m,const float * __restrict__ xyz1,
 		__syncthreads();
 	}
 }
-void matchcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,
+void multiemdcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,
 		const float *offset1, const float *offset2, float * out){
-	matchcost<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,out);
+	multiemdcost<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,out);
 }
-__global__ void matchcostgrad2(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
+__global__ void multiemdcostgrad2(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
 		const float * __restrict__ match,
 		const float * __restrict__ offset1, const float * __restrict__ offset2,
 		float * __restrict__ grad2){
@@ -246,7 +246,7 @@ __global__ void matchcostgrad2(int b,int n,int m,const float * __restrict__ xyz1
 		}
 	}
 }
-__global__ void matchcostgrad1(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
+__global__ void multiemdcostgrad1(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
 		const float * __restrict__ match,
 		const float * __restrict__ offset1, const float * __restrict__ offset2,
 		float * __restrict__ grad1){
@@ -273,9 +273,9 @@ __global__ void matchcostgrad1(int b,int n,int m,const float * __restrict__ xyz1
 		}
 	}
 }
-void matchcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, 
+void multiemdcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, 
 		const float *offset1, const float *offset2, float * grad1,float * grad2){
-	matchcostgrad1<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,grad1);
-	matchcostgrad2<<<dim3(32,32),256>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,grad2);
+	multiemdcostgrad1<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,grad1);
+	multiemdcostgrad2<<<dim3(32,32),256>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,grad2);
 }
 
