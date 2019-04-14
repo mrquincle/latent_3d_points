@@ -59,12 +59,13 @@ REGISTER_OP("MultiEmdCostGrad")
  * @param xyz2     the xyz coordinates in point cloud 2 in format [x0 y0 z0 x1 y1 z1 ... xn yn zn]
  * @param match    result, zero matrix with only 1s when points in xyz1 and xyz2 match
  */
-void multiemd_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,float * match,float * offset1,float * offset2){
+void multiemd_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,float * match,
+		float * offset1,float * offset2, float *distances, int * indices){
 	
 	// offset is calculated per individual point, not per pair
 	// we calculate it once for the entire dataset and only then perform batches
-	calc_offset(n*b, xyz1, offset1);
-	calc_offset(m*b, xyz2, offset2);
+	calc_offset(n*b, xyz1, offset1, distances, indices);
+	calc_offset(m*b, xyz2, offset2, distances, indices);
 
 	for (int i=0;i<b;i++){
 		int factorl=std::max(n,m)/n;
@@ -282,7 +283,18 @@ class MultiEmdGpuOp: public OpKernel{
 			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,(n+m)*2},&temp_tensor));
 			auto temp_flat=temp_tensor.flat<float>();
 			float * temp=&(temp_flat(0));
-			multiemdLauncher(b,n,m,xyz1,xyz2,match,offset1,offset2,temp);
+			
+			Tensor temp_distances_tensor;
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,n*m},&temp_distances_tensor));
+			auto temp_distances_flat=temp_distances_tensor.flat<float>();
+			float * distances=&(temp_distances_flat(0));
+			
+			Tensor temp_indices_tensor;
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,n},&temp_indices_tensor));
+			auto temp_indices_flat=temp_indices_tensor.flat<int>();
+			int * indices=&(temp_indices_flat(0));
+
+			multiemdLauncher(b,n,m,xyz1,xyz2,match,offset1,offset2,temp,distances,indices);
 		}
 };
 REGISTER_KERNEL_BUILDER(Name("MultiEmd").Device(DEVICE_GPU), MultiEmdGpuOp);
@@ -320,8 +332,18 @@ class MultiEmdOp: public OpKernel{
 			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,n},&match_tensor));
 			auto match_flat=match_tensor->flat<float>();
 			float * match=&(match_flat(0));
+			
+			Tensor temp_distances_tensor;
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,n*m},&temp_distances_tensor));
+			auto temp_distances_flat=temp_distances_tensor.flat<float>();
+			float * distances=&(temp_distances_flat(0));
+			
+			Tensor temp_indices_tensor;
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,n},&temp_indices_tensor));
+			auto temp_indices_flat=temp_indices_tensor.flat<int>();
+			int * indices=&(temp_indices_flat(0));
 
-			multiemd_cpu(b,n,m,xyz1,xyz2,match,offset1,offset2);
+			multiemd_cpu(b,n,m,xyz1,xyz2,match,offset1,offset2,distances,indices);
 		}
 };
 REGISTER_KERNEL_BUILDER(Name("MultiEmd").Device(DEVICE_CPU), MultiEmdOp);

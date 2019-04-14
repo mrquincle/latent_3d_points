@@ -9,12 +9,6 @@
 // dim = 3, visibility limit to compilation unit
 static const int dim = 3;
 
-__host__ __device__ void swapf(float* a, float* b) {
-  float t = *a;
-  *a = *b;
-  *b = t;
-}
-
 __host__ __device__ void swapi(int* a, int* b) {
   int t = *a;
   *a = *b;
@@ -25,37 +19,27 @@ __host__ __device__ void swapi(int* a, int* b) {
  * array, and places all smaller (smaller than pivot) to left of pivot and all greater elements to right
  * of pivot.
  */
-__host__ __device__ int partition(float *values, int *indices, int low, int high)
-{
-  float pivot = values[high];
-  // i = index of smaller element
-  int i = (low - 1);  
+__host__ __device__ int partition(const float *values, int *indices, int low, int high) {
+  float pivot = values[indices[high]];
+  int i = low;  
 
-  for (int j = low; j <= high- 1; j++)
-  {
-    if (values[j] <= pivot)
-    {
-      i++;
-      swapf(&values[i], &values[j]);
+  for (int j = low; j <= high-1; j++) {
+    if (values[indices[j]] <= pivot) {
       swapi(&indices[i], &indices[j]);
+      i++;
     }
   }
-  i++;
-  swapf(&values[i], &values[high]);
   swapi(&indices[i], &indices[high]);
   return i;
 }
 
-/* The main function that implements quick sort. 
-*/
-__host__ __device__ void quicksort(float *values, int *indices, int low, int high)
-{
-  if (low < high)
-  {
-    // pi is partitioning index, values[p] is now at right place 
+/* The main function that implements quick sort. Values are const, only indices are used to indicate increasing
+ * size of values. That is indices[0] indicates the smallest value. The indices have to be sorted beforehand from
+ * 0 to n-1.
+ */
+__host__ __device__ void quicksort(const float *values, int *indices, int low, int high) {
+  if (low < high) {
     int pi = partition(values, indices, low, high);
-
-    // Separately sort elements before partition and after partition
     quicksort(values, indices, low, pi - 1);
     quicksort(values, indices, pi + 1, high);
   }
@@ -70,12 +54,7 @@ __host__ __device__ void argsort(int n, const float* values, int *indices) {
   for (int i = 0; i < n; ++i) {
     indices[i] = i;
   }
-  float *tmp = (float*)malloc(sizeof(float)*n);
-  for (int i = 0; i < n; ++i) {
-    tmp[i] = values[i];
-  }
-  quicksort(tmp, indices, 0, n-1);
-  free(tmp);
+  quicksort(values, indices, 0, n-1);
 }
 
 /**
@@ -146,24 +125,24 @@ __host__ __device__ void dist(const float *p1, const float *p2, float *result) {
 /**
  * The number of neighbours is flexible.
  * The distance is fixed. 
- * Returns offset matched with corresponding xy values (not sorted).
+ * Returns offset matched with corresponding data values (not sorted).
  * Uses argsort / quicksort under the hood to calculate distances.
  */
-__host__ __device__ void calc_offset(int n, const float *xy, float *offset) {
+__host__ __device__ void calc_offset(int n, const float *data, float *offset, float *distances, int *indices) {
 
   // scalar distance per pair of points
-  float *distances = (float*)calloc(sizeof(float),n*n);
+  //float *distances = (float*)calloc(sizeof(float),n*n);
+
+  // for each point temporarily store indices to neighbours ordered from nearby to far away
+  //int *indices = (int*)malloc(sizeof(int)*n);
 
   // calculate distances between all pairs of points (we later only need the points closer than window, so this can
   // be optimized)
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
-      dist(&xy[i*dim], &xy[j*dim], &distances[j*n+i]);
+      dist(&data[i*dim], &data[j*dim], &distances[j*n+i]);
     }
   }
-
-  // for each point temporarily store indices to neighbours ordered from nearby to far away
-  int *indices = (int*)malloc(sizeof(int)*n);
 
   // clear offsets (size n * dim)
   for (int i = 0; i < n*dim; ++i) {
@@ -181,7 +160,7 @@ __host__ __device__ void calc_offset(int n, const float *xy, float *offset) {
 
     for (int j = 0; j < m_cnt; ++j) {
       for (int d = 0; d < dim; ++d) {
-        offset[i*dim + d] += xy[indices[j]*dim + d]; 
+        offset[i*dim + d] += data[indices[j]*dim + d]; 
       }
     }
     if (m_cnt > 0) {
@@ -191,7 +170,9 @@ __host__ __device__ void calc_offset(int n, const float *xy, float *offset) {
     }
   }
 
-  free(distances);
-  distances = NULL;
+  // free(indices);
+  // indices = NULL;
+  // free(distances);
+  // distances = NULL;
 }
 

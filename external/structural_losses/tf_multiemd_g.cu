@@ -1,10 +1,15 @@
 #include <sort_indices.h>
 
+/**
+  * The __restrict__ type qualifier indicates that the particular function arguments do not address the same underlying
+  * values. This means that xyz1[.] never points to xyz2[.] or any of the other restricted function arguments.
+  */
 __global__ void multiemd(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,float * __restrict__ match,
-		float * __restrict__ offset1, float * __restrict__ offset2, float * temp){
+		float * __restrict__ offset1, float * __restrict__ offset2, float * temp, 
+		float * __restrict__ distances, int * __restrict__ indices){
 	
-	calc_offset(n*b, xyz1, offset1);
-	calc_offset(m*b, xyz2, offset2);
+	calc_offset(n*b, xyz1, offset1, distances, indices);
+	calc_offset(m*b, xyz2, offset2, distances, indices);
 
 	float * remainL=temp+blockIdx.x*(n+m)*2, * remainR=temp+blockIdx.x*(n+m)*2+n,*ratioL=temp+blockIdx.x*(n+m)*2+n+m,*ratioR=temp+blockIdx.x*(n+m)*2+n+m+n;
 	float multiL,multiR;
