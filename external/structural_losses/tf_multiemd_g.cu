@@ -4,14 +4,18 @@
   * The __restrict__ type qualifier indicates that the particular function arguments do not address the same underlying
   * values. This means that xyz1[.] never points to xyz2[.] or any of the other restricted function arguments.
   */
-__global__ void multiemd(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,float * __restrict__ match,
+__global__ void multiemd(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
+		float * __restrict__ match,
 		float * __restrict__ offset1, float * __restrict__ offset2, float * temp, 
 		float * __restrict__ distances, int * __restrict__ indices){
 	
 	calc_offset(n*b, xyz1, offset1, distances, indices);
 	calc_offset(m*b, xyz2, offset2, distances, indices);
 
-	float * remainL=temp+blockIdx.x*(n+m)*2, * remainR=temp+blockIdx.x*(n+m)*2+n,*ratioL=temp+blockIdx.x*(n+m)*2+n+m,*ratioR=temp+blockIdx.x*(n+m)*2+n+m+n;
+	float * remainL=temp+blockIdx.x*(n+m)*2;
+	float * remainR=temp+blockIdx.x*(n+m)*2+n;
+	float * ratioL=temp+blockIdx.x*(n+m)*2+n+m;
+	float * ratioR=temp+blockIdx.x*(n+m)*2+n+m+n;
 	float multiL,multiR;
 	if (n>=m){
 		multiL=1;
@@ -143,10 +147,12 @@ __global__ void multiemd(int b,int n,int m,const float * __restrict__ xyz1,const
 		}
 	}
 }
-void multiemdLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,float * match, float * offset1, float * offset2, float * temp){
-	multiemd<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,temp);
+void multiemdLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,float * match, float * offset1, 
+		float * offset2, float * temp, float * distances, int * indices){
+	multiemd<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,temp,distances,indices);
 }
-__global__ void matchcost(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,const float * __restrict__ match,
+__global__ void matchcost(int b,int n,int m,const float * __restrict__ xyz1,
+		const float * __restrict__ xyz2,const float * __restrict__ match,
 		const float * __restrict__ offset1, const float * __restrict__ offset2,
 		float * __restrict__ out){
 	__shared__ float allsum[512];
@@ -191,10 +197,12 @@ __global__ void matchcost(int b,int n,int m,const float * __restrict__ xyz1,cons
 		__syncthreads();
 	}
 }
-void matchcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,const float *offset1, const float *offset2, float * out){
+void matchcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,
+		const float *offset1, const float *offset2, float * out){
 	matchcost<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,out);
 }
-__global__ void matchcostgrad2(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,const float * __restrict__ match,
+__global__ void matchcostgrad2(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
+		const float * __restrict__ match,
 		const float * __restrict__ offset1, const float * __restrict__ offset2,
 		float * __restrict__ grad2){
 	__shared__ float sum_grad[256*3];
@@ -237,7 +245,8 @@ __global__ void matchcostgrad2(int b,int n,int m,const float * __restrict__ xyz1
 		}
 	}
 }
-__global__ void matchcostgrad1(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,const float * __restrict__ match,
+__global__ void matchcostgrad1(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
+		const float * __restrict__ match,
 		const float * __restrict__ offset1, const float * __restrict__ offset2,
 		float * __restrict__ grad1){
 	for (int i=blockIdx.x;i<b;i+=gridDim.x){
@@ -263,7 +272,8 @@ __global__ void matchcostgrad1(int b,int n,int m,const float * __restrict__ xyz1
 		}
 	}
 }
-void matchcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, const float *offset1, const float *offset2, float * grad1,float * grad2){
+void matchcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, 
+		const float *offset1, const float *offset2, float * grad1,float * grad2){
 	matchcostgrad1<<<32,512>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,grad1);
 	matchcostgrad2<<<dim3(32,32),256>>>(b,n,m,xyz1,xyz2,match,offset1,offset2,grad2);
 }
