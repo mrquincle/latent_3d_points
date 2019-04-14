@@ -63,8 +63,8 @@ void multiemd_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,float 
 	
 	// offset is calculated per individual point, not per pair
 	// we calculate it once for the entire dataset and only then perform batches
-	calc_offset(n*b, xy1, offset1);
-	calc_offset(m*b, xy2, offset2);
+	calc_offset(n*b, xyz1, offset1);
+	calc_offset(m*b, xyz2, offset2);
 
 	for (int i=0;i<b;i++){
 		int factorl=std::max(n,m)/n;
