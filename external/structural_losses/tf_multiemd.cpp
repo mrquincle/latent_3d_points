@@ -10,22 +10,22 @@ using namespace tensorflow;
 REGISTER_OP("MultiEmd")
 	.Input("xyz1: float32")
 	.Input("xyz2: float32")
-	.Output("match: float32");
-	.Output("offset1: float32");
+	.Output("match: float32")
+	.Output("offset1: float32")
 	.Output("offset2: float32");
 REGISTER_OP("MultiEmdCost")
 	.Input("xyz1: float32")
 	.Input("xyz2: float32")
 	.Input("match: float32")
-	.Input("offset1: float32");
-	.Input("offset2: float32");
+	.Input("offset1: float32")
+	.Input("offset2: float32")
 	.Output("cost: float32");
 REGISTER_OP("MultiEmdCostGrad")
 	.Input("xyz1: float32")
 	.Input("xyz2: float32")
 	.Input("match: float32")
-	.Input("offset1: float32");
-	.Input("offset2: float32");
+	.Input("offset1: float32")
+	.Input("offset2: float32")
 	.Output("grad1: float32")
 	.Output("grad2: float32");
 
