@@ -23,11 +23,14 @@ ld_flags=-L$(tensorflow) -ltensorflow_framework
 
 all: tf_multiemd_so.so tf_approxmatch_so.so tf_nndistance_so.so
 
-tf_multiemd_so.so: tf_multiemd_g.cu.o tf_multiemd.cpp sort_indices.c
-	g++ -std=c++11 tf_multiemd.cpp sort_indices.c tf_multiemd_g.cu.o -o tf_multiemd_so.so -shared -fPIC -I . -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)
+tf_multiemd_so.so: sort_indices.c.o tf_multiemd_g.cu.o tf_multiemd.cpp 
+	g++ -std=c++11 tf_multiemd.cpp tf_multiemd_g.cu.o sort_indices.c.o -o tf_multiemd_so.so -shared -fPIC -I . -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)
 
 tf_multiemd_g.cu.o: tf_multiemd_g.cu 
 	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o tf_multiemd_g.cu.o tf_multiemd_g.cu -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) -Xcompiler -fPIC -O2 $(nvcc_flags)
+
+sort_indices.c.o: sort_indices.c 
+	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o sort_indices.c.o sort_indices.c -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) -Xcompiler -fPIC -O2 $(nvcc_flags)
 
 tf_approxmatch_so.so: tf_approxmatch_g.cu.o tf_approxmatch.cpp
 	g++ -std=c++11 tf_approxmatch.cpp tf_approxmatch_g.cu.o -o tf_approxmatch_so.so -shared -fPIC -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)

@@ -2,10 +2,6 @@
  * Provide sorting functions (currently CPU). 
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
 #include <math.h>
 
 #include <sort_indices.h>
@@ -13,13 +9,13 @@
 // dim = 3, visibility limit to compilation unit
 static const int dim = 3;
 
-void swapf(float* a, float* b) {
+__host__ __device__ void swapf(float* a, float* b) {
   float t = *a;
   *a = *b;
   *b = t;
 }
 
-void swapi(int* a, int* b) {
+__host__ __device__ void swapi(int* a, int* b) {
   int t = *a;
   *a = *b;
   *b = t;
@@ -29,7 +25,7 @@ void swapi(int* a, int* b) {
  * array, and places all smaller (smaller than pivot) to left of pivot and all greater elements to right
  * of pivot.
  */
-int partition(float *values, int *indices, int low, int high)
+__host__ __device__ int partition(float *values, int *indices, int low, int high)
 {
   float pivot = values[high];
   // i = index of smaller element
@@ -52,7 +48,7 @@ int partition(float *values, int *indices, int low, int high)
 
 /* The main function that implements quick sort. 
 */
-void quicksort(float *values, int *indices, int low, int high)
+__host__ __device__ void quicksort(float *values, int *indices, int low, int high)
 {
   if (low < high)
   {
@@ -69,13 +65,15 @@ void quicksort(float *values, int *indices, int low, int high)
  *
  * This uses memcpy because sorting is in-place. Hopefully tf.argsort is implemented differently.
  */
-void argsort(int n, const float* values, int *indices) {
+__host__ __device__ void argsort(int n, const float* values, int *indices) {
   // set indices to a consecutive sequence from 0 to n-1
   for (int i = 0; i < n; ++i) {
     indices[i] = i;
   }
   float *tmp = (float*)malloc(sizeof(float)*n);
-  memcpy(tmp, values, sizeof(float)*n);
+  for (int i = 0; i < n; ++i) {
+    tmp[i] = values[i];
+  }
   quicksort(tmp, indices, 0, n-1);
   free(tmp);
 }
@@ -85,7 +83,7 @@ void argsort(int n, const float* values, int *indices) {
  * Assumes increasing order of values[indices[.]].
  * Note, we return the index itself, not the value within the array of indices. 
  */
-int count_items_below_threshold(int n, const float* values, const int *indices, float threshold) {
+__host__ __device__ int count_items_below_threshold(int n, const float* values, const int *indices, float threshold) {
   int result = 0;
   for (int i = 0; i < n; ++i) {
     if (values[indices[i]] > threshold) {
@@ -99,16 +97,13 @@ int count_items_below_threshold(int n, const float* values, const int *indices, 
 /**
  * Smoothing average where we calculate a window of size k, with k nearest neighbours. 
  */
-void smoothing_avg(int n, const float* values, const int *indices, float *mean, int k) {
+__host__ __device__ void smoothing_avg(int n, const float* values, const int *indices, float *mean, int k) {
   if (k == 0) {
     for (int i = 0; i < n; ++i) {
       mean[i] = values[i];
     }
     return;
   }
-  assert (k < n);
-  assert (k % 2 == 0);
-
   for (int i = 0; i < n; ++i) {
     mean[i] = 0;
   }
@@ -140,10 +135,7 @@ void smoothing_avg(int n, const float* values, const int *indices, float *mean, 
 }
 
 // result should be allocated and zero
-void dist(const float *p1, const float *p2, float *result) {
-  assert(p1 != NULL);
-  assert(p2 != NULL);
-  assert(result != NULL);
+__host__ __device__ void dist(const float *p1, const float *p2, float *result) {
   for (int i = 0; i < dim; ++i) {
     *result += ((p1[i] - p2[i]) * (p1[i] - p2[i]));
   }
@@ -157,7 +149,7 @@ void dist(const float *p1, const float *p2, float *result) {
  * Returns offset matched with corresponding xy values (not sorted).
  * Uses argsort / quicksort under the hood to calculate distances.
  */
-void calc_offset(int n, const float *xy, float *offset) {
+__host__ __device__ void calc_offset(int n, const float *xy, float *offset) {
 
   // scalar distance per pair of points
   float *distances = (float*)calloc(sizeof(float),n*n);
