@@ -379,13 +379,11 @@ class MultiEmdCostGpuOp: public OpKernel{
 			
 			const Tensor& offset1_tensor=context->input(3);
 			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
-			int m=offset1_tensor.shape().dim_size(1);
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
 			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
-			int m=offset2_tensor.shape().dim_size(1);
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
@@ -424,13 +422,11 @@ class MultiEmdCostOp: public OpKernel{
 			
 			const Tensor& offset1_tensor=context->input(3);
 			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
-			int m=offset1_tensor.shape().dim_size(1);
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
 			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
-			int m=offset2_tensor.shape().dim_size(1);
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
@@ -469,13 +465,11 @@ class MultiEmdCostGradGpuOp: public OpKernel{
 			
 			const Tensor& offset1_tensor=context->input(3);
 			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
-			int m=offset1_tensor.shape().dim_size(1);
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
 			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
-			int m=offset2_tensor.shape().dim_size(1);
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
@@ -518,13 +512,11 @@ class MultiEmdCostGradOp: public OpKernel{
 
 			const Tensor& offset1_tensor=context->input(3);
 			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
-			int m=offset1_tensor.shape().dim_size(1);
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
 			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
-			int m=offset2_tensor.shape().dim_size(1);
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
