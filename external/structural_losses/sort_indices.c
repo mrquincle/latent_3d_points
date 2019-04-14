@@ -73,46 +73,6 @@ __host__ __device__ int count_items_below_threshold(int n, const float* values, 
   return result;
 }
 
-/**
- * Smoothing average where we calculate a window of size k, with k nearest neighbours. 
- */
-__host__ __device__ void smoothing_avg(int n, const float* values, const int *indices, float *mean, int k) {
-  if (k == 0) {
-    for (int i = 0; i < n; ++i) {
-      mean[i] = values[i];
-    }
-    return;
-  }
-  for (int i = 0; i < n; ++i) {
-    mean[i] = 0;
-  }
-
-  int k2 = k/2;
-  // first sum for first entry up to k/2 + 1 values
-  for (int i = 0; i < k2 + 1; ++i) {
-    mean[indices[0]] += values[indices[i]];
-  }
-  // then from second entry on calculate moving average by adding item k/2 forwards
-  // normalize last item considered i-1 by size of (still increasing sliding window)
-  for (int i = 1; i < k2 + 1; ++i) {
-    mean[indices[i]] = mean[indices[i-1]] + values[indices[i + k2]];
-    mean[indices[i-1]] /= (k2 + i);
-  }
-  // from k/2 + 1 on our sliding window is full size (k + 1), we subtract item -(k/2+1) and add item k/2
-  // normalize last item with this window size
-  for (int i = k2 + 1; i < n - k2; ++i) {
-    mean[indices[i]] = mean[indices[i-1]] + values[indices[i + k2]] - values[indices[i - k2 - 1]];
-    mean[indices[i-1]] /= (k + 1);
-  }
-  // now are sliding window is decreasing in size again, only subtract items 
-  for (int i = n - k2; i < n; ++i) {
-    mean[indices[i]] = mean[indices[i-1]] - values[indices[i - k2 - 1]];
-    mean[indices[i-1]] /= (n + k2 + 1 - i);
-  }
-  // normalize last entry
-  mean[indices[n-1]] /= (k2 + 1);
-}
-
 // result should be allocated and zero
 __host__ __device__ void dist(const float *p1, const float *p2, float *result) {
   for (int i = 0; i < dim; ++i) {
@@ -129,12 +89,6 @@ __host__ __device__ void dist(const float *p1, const float *p2, float *result) {
  * Uses argsort / quicksort under the hood to calculate distances.
  */
 __host__ __device__ void calc_offset(int n, const float *data, float *offset, float *distances, int *indices) {
-
-  // scalar distance per pair of points
-  //float *distances = (float*)calloc(sizeof(float),n*n);
-
-  // for each point temporarily store indices to neighbours ordered from nearby to far away
-  //int *indices = (int*)malloc(sizeof(int)*n);
 
   // calculate distances between all pairs of points (we later only need the points closer than window, so this can
   // be optimized)
@@ -169,10 +123,5 @@ __host__ __device__ void calc_offset(int n, const float *data, float *offset, fl
       }
     }
   }
-
-  // free(indices);
-  // indices = NULL;
-  // free(distances);
-  // distances = NULL;
 }
 
