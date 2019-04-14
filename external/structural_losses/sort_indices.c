@@ -10,7 +10,7 @@
 static const int dim = 3;
 
 __host__ __device__ void insertionsort(const float *values, int *indices, int n) { 
-  int i, key, key_i, j; 
+  int i, key_i, j; 
   for (i = 1; i < n; i++) { 
     key_i = indices[i];
     j = i - 1; 
