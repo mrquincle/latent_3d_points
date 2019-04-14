@@ -243,10 +243,10 @@ void multiemdLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,fl
 		float * offset2, float * temp, float *distances, int *indices);
 
 void multiemdcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, 
-		float * offset1, float * offset2, float * out);
+		const float * offset1, const float * offset2, float * out);
 
 void multiemdcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,
-		float *offset1, float *offset2, float * grad1,float * grad2);
+		const float *offset1, const float *offset2, float * grad1,float * grad2);
 
 class MultiEmdGpuOp: public OpKernel{
 	public:
