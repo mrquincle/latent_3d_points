@@ -6,10 +6,16 @@
 
 #include <sort_indices.h>
 
+#ifdef __CUDACC__
+#define CUDA_HOST_DEVICE __host__ __device__
+#else
+#define CUDA_HOST_DEVICE
+#endif
+
 // dim = 3, visibility limit to compilation unit
 static const int dim = 3;
 
-void insertionsort(const float *values, int *indices, int n) { 
+CUDA_HOST_DEVICE void insertionsort(const float *values, int *indices, int n) { 
   int i, key_i, j; 
   for (i = 1; i < n; i++) { 
     key_i = indices[i];
@@ -28,7 +34,7 @@ void insertionsort(const float *values, int *indices, int n) {
  *
  * This sets indices to a consecutive sequence from 0 to n-1.
  */
-void argsort(int n, const float* values, int *indices) {
+CUDA_HOST_DEVICE void argsort(int n, const float* values, int *indices) {
   for (int i = 0; i < n; ++i) {
     indices[i] = i;
   }
@@ -40,7 +46,7 @@ void argsort(int n, const float* values, int *indices) {
  * Assumes increasing order of values[indices[.]].
  * Note, we return the index itself, not the value within the array of indices. 
  */
-int count_items_below_threshold(int n, const float* values, const int *indices, float threshold) {
+CUDA_HOST_DEVICE int count_items_below_threshold(int n, const float* values, const int *indices, float threshold) {
   int result = 0;
   for (int i = 0; i < n; ++i) {
     if (values[indices[i]] > threshold) {
@@ -52,7 +58,7 @@ int count_items_below_threshold(int n, const float* values, const int *indices, 
 }
 
 // result should be allocated and zero
-void dist(const float *p1, const float *p2, float *result) {
+CUDA_HOST_DEVICE void dist(const float *p1, const float *p2, float *result) {
   for (int i = 0; i < dim; ++i) {
     *result += ((p1[i] - p2[i]) * (p1[i] - p2[i]));
   }
@@ -66,7 +72,7 @@ void dist(const float *p1, const float *p2, float *result) {
  * Returns offset matched with corresponding data values (not sorted).
  * Uses argsort / quicksort under the hood to calculate distances.
  */
-void calc_offset(int n, const float *data, float *offset, float *distances, int *indices) {
+CUDA_HOST_DEVICE void calc_offset(int n, const float *data, float *offset, float *distances, int *indices) {
 
   // calculate distances between all pairs of points (we later only need the points closer than window, so this can
   // be optimized)
