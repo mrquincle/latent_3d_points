@@ -17,10 +17,18 @@ from . general_utils import apply_augmentations
 
 try:    
     from .. external.structural_losses.tf_nndistance import nn_distance
+except:
+    print('tf_nn_distance.so cannot be loaded. Please install / check path.')
+
+try:    
     from .. external.structural_losses.tf_approxmatch import approx_match, match_cost
 except:
-    print('External Losses (Chamfer-EMD) cannot be loaded. Please install them first.')
-    
+    print('tf_approxmatch cannot be loaded. Please check path.')
+
+try:    
+    from .. external.structural_losses.tf_multiemd import multi_emd, multi_emd_cost
+except:
+    print('tf_multiemd cannot be loaded. Please check path.')
 
 class PointNetAutoEncoder(AutoEncoder):
     '''
@@ -75,8 +83,15 @@ class PointNetAutoEncoder(AutoEncoder):
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
+            match = tf.constant(1.0)
+            self.loss = tf.constant(1.0)
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+        elif c.loss == 'multi_emd':
+            match = tf.constant(1.0)
+            self.loss = tf.constant(1.0)
+            match,offset1,offset2 = multi_emd(self.x_reconstr, self.gt)
+            self.loss = tf.reduce_mean(multi_emd_cost(self.x_reconstr, self.gt, match, offset1, offset2))
 
         reg_losses = self.graph.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         if c.exists_and_is_not_none('w_reg_alpha'):
