@@ -9,52 +9,30 @@
 // dim = 3, visibility limit to compilation unit
 static const int dim = 3;
 
-__host__ __device__ void swapi(int* a, int* b) {
-  int t = *a;
-  *a = *b;
-  *b = t;
-}
-
-/* This function takes last element as pivot, places the pivot element at its correct position in sorted
- * array, and places all smaller (smaller than pivot) to left of pivot and all greater elements to right
- * of pivot.
- */
-__host__ __device__ int partition(const float *values, int *indices, int low, int high) {
-  float pivot = values[indices[high]];
-  int i = low;  
-
-  for (int j = low; j <= high-1; j++) {
-    if (values[indices[j]] <= pivot) {
-      swapi(&indices[i], &indices[j]);
-      i++;
-    }
-  }
-  swapi(&indices[i], &indices[high]);
-  return i;
-}
-
-/* The main function that implements quick sort. Values are const, only indices are used to indicate increasing
- * size of values. That is indices[0] indicates the smallest value. The indices have to be sorted beforehand from
- * 0 to n-1.
- */
-__host__ __device__ void quicksort(const float *values, int *indices, int low, int high) {
-  if (low < high) {
-    int pi = partition(values, indices, low, high);
-    quicksort(values, indices, low, pi - 1);
-    quicksort(values, indices, pi + 1, high);
-  }
-}
+__host__ __device__ void insertionsort(const float *values, int *indices, int n) { 
+  int i, key, key_i, j; 
+  for (i = 1; i < n; i++) { 
+    key_i = indices[i];
+    j = i - 1; 
+    while (j >= 0 && values[indices[j]] > values[key_i]) { 
+      indices[j + 1] = indices[j];
+      j = j - 1; 
+    } 
+    indices[j + 1] = key_i; 
+  } 
+} 
 
 /* Tensorflow has also argsort with slightly different arguments.
  *
  * This uses memcpy because sorting is in-place. Hopefully tf.argsort is implemented differently.
+ *
+ * This sets indices to a consecutive sequence from 0 to n-1.
  */
 __host__ __device__ void argsort(int n, const float* values, int *indices) {
-  // set indices to a consecutive sequence from 0 to n-1
   for (int i = 0; i < n; ++i) {
     indices[i] = i;
   }
-  quicksort(values, indices, 0, n-1);
+  insertionsort(values, indices, n);
 }
 
 /**
