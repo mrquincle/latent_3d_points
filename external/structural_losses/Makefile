@@ -17,32 +17,33 @@ flags=
 nvcc_flags=--expt-relaxed-constexpr
 
 # does not work to remove the "missing return statement at end of void function" warnings, but let's just keep it there
-x_flags=-Xcompiler -Wno-return-type
+x_flags=-Xcompiler -Wno-return-type -Xcompiler -fPIC -O2
 
 ld_flags=-L$(tensorflow) -ltensorflow_framework
 
 all: tf_multiemd_so.so tf_approxmatch_so.so tf_nndistance_so.so
 
 tf_multiemd_so.so: sort_indices.c.o tf_multiemd_g.cu.o tf_multiemd.cpp 
-	g++ -std=c++11 tf_multiemd.cpp tf_multiemd_g.cu.o sort_indices.c.o -o tf_multiemd_so.so -shared -fPIC -I . -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)
+	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 --device-link -o tf_multiemd_link.o sort_indices.c.o tf_multiemd_g.cu.o -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 $(x_flags) $(nvcc_flags)
+	g++ -std=c++11 tf_multiemd.cpp tf_multiemd_g.cu.o sort_indices.c.o tf_multiemd_link.o -o tf_multiemd_so.so -shared -fPIC -I . -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)
 
 tf_multiemd_g.cu.o: tf_multiemd_g.cu 
-	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -rdc=true -c -o tf_multiemd_g.cu.o tf_multiemd_g.cu sort_indices.c -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) -Xcompiler -fPIC -O2 $(nvcc_flags)
+	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 --device-c -o tf_multiemd_g.cu.o tf_multiemd_g.cu -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) $(nvcc_flags)
 
 sort_indices.c.o: sort_indices.c 
-	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o sort_indices.c.o sort_indices.c -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) -Xcompiler -fPIC -O2 $(nvcc_flags)
+	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 --device-c -o sort_indices.c.o sort_indices.c -I . -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) $(nvcc_flags)
 
 tf_approxmatch_so.so: tf_approxmatch_g.cu.o tf_approxmatch.cpp
 	g++ -std=c++11 tf_approxmatch.cpp tf_approxmatch_g.cu.o -o tf_approxmatch_so.so -shared -fPIC -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)
 
 tf_approxmatch_g.cu.o: tf_approxmatch_g.cu
-	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o tf_approxmatch_g.cu.o tf_approxmatch_g.cu -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) -Xcompiler -fPIC -O2 $(nvcc_flags)
+	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o tf_approxmatch_g.cu.o tf_approxmatch_g.cu -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) $(nvcc_flags)
 
 tf_nndistance_so.so: tf_nndistance_g.cu.o tf_nndistance.cpp
 	g++ -std=c++11 tf_nndistance.cpp tf_nndistance_g.cu.o -o tf_nndistance_so.so -shared -fPIC -I $(tensorflow)/include -lcudart -L $(cudalib) $(ld_flags) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 $(flags)
 
 tf_nndistance_g.cu.o: tf_nndistance_g.cu
-	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o tf_nndistance_g.cu.o tf_nndistance_g.cu -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) -Xcompiler -fPIC -O2 $(nvcc_flags)
+	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -c -o tf_nndistance_g.cu.o tf_nndistance_g.cu -I $(tensorflow)/include -DGOOGLE_CUDA=1 -x cu $(x_flags) $(nvcc_flags)
 
 
 clean:
