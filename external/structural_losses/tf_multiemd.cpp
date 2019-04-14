@@ -239,11 +239,14 @@ void multiemdcostgrad_cpu(int b,int n,int m,const float * xyz1,const float * xyz
 	}
 }
 
-void multiemdLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,float * match,float * offset1, float * offset2, float * temp);
+void multiemdLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,float * match,float * offset1, 
+		float * offset2, float * temp, float *distances, int *indices);
 
-void multiemdcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, float * offset1, float * offset2, float * out);
+void multiemdcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match, 
+		float * offset1, float * offset2, float * out);
 
-void multiemdcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,float *offset1, float *offset2, float * grad1,float * grad2);
+void multiemdcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,
+		float *offset1, float *offset2, float * grad1,float * grad2);
 
 class MultiEmdGpuOp: public OpKernel{
 	public:
@@ -307,16 +310,18 @@ class MultiEmdOp: public OpKernel{
 			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
+			
 			int b=xyz1_tensor.shape().dim_size(0);
 			int n=xyz1_tensor.shape().dim_size(1);
 			//OP_REQUIRES(context,n<=4096,errors::InvalidArgument("MultiEmd handles at most 4096 dataset points"));
 
 			const Tensor& xyz2_tensor=context->input(1);
 			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
-			int m=xyz2_tensor.shape().dim_size(1);
 			//OP_REQUIRES(context,m<=1024,errors::InvalidArgument("MultiEmd handles at most 1024 query points"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
+			
+			int m=xyz2_tensor.shape().dim_size(1);
 			
 			Tensor * offset1_tensor=NULL;
 			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,n,3},&offset1_tensor));
@@ -355,7 +360,7 @@ class MultiEmdCostGpuOp: public OpKernel{
 			const Tensor& xyz1_tensor=context->input(0);
 			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
-			const float * xyz1=&(xyz1_flat(0));A
+			const float * xyz1=&(xyz1_flat(0));
 
 			int b=xyz1_tensor.shape().dim_size(0);
 			int n=xyz1_tensor.shape().dim_size(1);
