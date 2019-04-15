@@ -34,7 +34,7 @@ def _multi_emd_shape(op):
 		tf.TensorShape([shape1.dims[0],shape2.dims[1],shape2.dims[2]])
 		]
 
-def multi_emd_cost(xyz1,xyz2,match,offset,offset2):
+def multi_emd_cost(xyz1,xyz2,match,offset1,offset2):
 	'''
 input:
 	xyz1    : batch_size * #dataset_points * 3
