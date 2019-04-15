@@ -273,12 +273,12 @@ class MultiEmdGpuOp: public OpKernel{
 			float * match=&(match_flat(0));
 			
 			Tensor * offset1_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,n,3},&offset1_tensor));
+			OP_REQUIRES_OK(context,context->allocate_output(1,TensorShape{b,n,3},&offset1_tensor));
 			auto offset1_flat=offset1_tensor->flat<float>();
 			float * offset1=&(offset1_flat(0));
 			
 			Tensor * offset2_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,3},&offset2_tensor));
+			OP_REQUIRES_OK(context,context->allocate_output(2,TensorShape{b,m,3},&offset2_tensor));
 			auto offset2_flat=offset2_tensor->flat<float>();
 			float * offset2=&(offset2_flat(0));
 
@@ -329,12 +329,12 @@ class MultiEmdOp: public OpKernel{
 			float * offset1=&(offset1_flat(0));
 			
 			Tensor * offset2_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,3},&offset2_tensor));
+			OP_REQUIRES_OK(context,context->allocate_output(1,TensorShape{b,m,3},&offset2_tensor));
 			auto offset2_flat=offset2_tensor->flat<float>();
 			float * offset2=&(offset2_flat(0));
 
 			Tensor * match_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,n},&match_tensor));
+			OP_REQUIRES_OK(context,context->allocate_output(2,TensorShape{b,m,n},&match_tensor));
 			auto match_flat=match_tensor->flat<float>();
 			float * match=&(match_flat(0));
 			
