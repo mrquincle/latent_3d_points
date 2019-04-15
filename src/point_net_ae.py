@@ -89,6 +89,8 @@ class PointNetAutoEncoder(AutoEncoder):
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'multi_emd':
             match = tf.constant(1.0)
+            offset1 = tf.constant(1.0)
+            offset2 = tf.constant(1.0)
             self.loss = tf.constant(1.0)
             match,offset1,offset2 = multi_emd(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(multi_emd_cost(self.x_reconstr, self.gt, match, offset1, offset2))
