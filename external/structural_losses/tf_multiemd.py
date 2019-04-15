@@ -63,7 +63,7 @@ def _multi_emd_cost_grad(op,grad_cost):
 	offset1=op.inputs[3]
 	offset2=op.inputs[4]
 	grad_1,grad_2=multiemd_module.multi_emd_cost_grad(xyz1,xyz2,match,offset1,offset2)
-	return [grad_1*tf.expand_dims(tf.expand_dims(grad_cost,1),2),grad_2*tf.expand_dims(tf.expand_dims(grad_cost,1),2),None]
+	return [grad_1*tf.expand_dims(tf.expand_dims(grad_cost,1),2),grad_2*tf.expand_dims(tf.expand_dims(grad_cost,1),2),None,None,None]
 
 if __name__=='__main__':
 	alpha=0.5
