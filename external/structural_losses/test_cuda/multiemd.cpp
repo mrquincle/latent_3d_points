@@ -242,7 +242,7 @@ void multiemdcostgradLauncher(int b,int n,int m,const float * xyz1,const float *
 int main()
 {
 	srand(101);
-	int b=32,n=4096,m=n/4;
+	int b=1,n=2048,m=n/4;
 	float * xyz1=new float[b*n*3];
 	float * xyz2=new float[b*m*3];
 	float * match=new float[b*n*m];
