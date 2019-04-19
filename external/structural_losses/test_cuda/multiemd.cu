@@ -7,7 +7,8 @@
   */
 __global__ void multiemd(int b,int n,int m,const float * __restrict__ xyz1,const float * __restrict__ xyz2,
 		float * __restrict__ match,
-		float * __restrict__ offset1, float * __restrict__ offset2, float * temp, 
+		float * __restrict__ offset1, float * __restrict__ offset2, 
+		float * temp, 
 		float * __restrict__ distances, int * __restrict__ indices){
 	
 	calc_offset(n*b, xyz1, offset1, distances, indices);

@@ -268,7 +268,7 @@ int main()
 	multiemd_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,distances,indices);
 	printf("multiemd cpu time %f\n",get_time()-t0);
 	multiemdcost_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,cost_cpu);
-	multiemdcostgrad1_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,grad1_cpu,grad2_cpu);
+	multiemdcostgrad_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,grad1_cpu,grad2_cpu);
 
 	float * xyz1_g;
 	cudaMalloc(&xyz1_g,b*n*3*4);
@@ -282,6 +282,9 @@ int main()
 	cudaMalloc(&grad1_g,b*n*3*4);
 	float * grad2_g;
 	cudaMalloc(&grad2_g,b*m*3*4);
+	
+	float * temp_g;
+	cudaMalloc(&temp_g,b*(n+m)*2*4);
 	
 	float * offset1_g;
 	cudaMalloc(&offset1_g,b*n*3*4);
@@ -299,6 +302,8 @@ int main()
 	cudaMemset(grad1_g,0,b*n*3*4);
 	cudaMemset(grad2_g,0,b*m*3*4);
 	
+	cudaMemset(temp_g,0,b*(n+m)*2*4);
+	
 	cudaMemset(offset1_g,0,b*n*3*4);
 	cudaMemset(offset2_g,0,b*m*3*4);
 	cudaMemset(distances_g,0,b*n*4);
@@ -307,7 +312,7 @@ int main()
 	double besttime=0;
 	for (int run=0;run<10;run++){
 		double t1=get_time();
-		multiemdLauncher(b,n,m,xyz1_g,xyz2_g,match_g,offset1_g,offset2_g,distances_g,indices_g);
+		multiemdLauncher(b,n,m,xyz1_g,xyz2_g,match_g,offset1_g,offset2_g,temp_g,distances_g,indices_g);
 		multiemdcostLauncher(b,n,m,xyz1_g,xyz2_g,match_g,offset1_g,offset2_g,cost_g);
 		multiemdcostgradLauncher(b,n,m,xyz1_g,xyz2_g,match_g,offset1_g,offset2_g,grad1_g,grad2_g);
 		cudaDeviceSynchronize();
@@ -351,12 +356,12 @@ int main()
 	printf("emax_cost=%f\n",emax/2);
 	emax=0;
 	for (int i=0;i<2*m*3;i++)
-		emax+=fabs(double(grad[i]-grad_cpu[i]));
+		emax+=fabs(double(grad2[i]-grad2_cpu[i]));
 	//for (int i=0;i<3*m;i++){
 		//if (grad[i]!=0)
 			//printf("i %d %f %f\n",i,grad[i],grad_cpu[i]);
 	//}
-	printf("emax_grad=%f\n",emax/(2*m*3));
+	printf("emax_grad2=%f\n",emax/(2*m*3));
 
 	cudaFree(xyz1_g);
 	cudaFree(xyz2_g);
