@@ -263,6 +263,8 @@ class MultiEmdGpuOp: public OpKernel{
 			const Tensor& xyz2_tensor=context->input(1);
 			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
 			int m=xyz2_tensor.shape().dim_size(1);
+
+			int max_mn = (n > m) ? n : m;
 			//OP_REQUIRES(context,m<=1024,errors::InvalidArgument("MultiEmd handles at most 1024 query points"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
@@ -288,12 +290,12 @@ class MultiEmdGpuOp: public OpKernel{
 			float * temp=&(temp_flat(0));
 			
 			Tensor temp_distances_tensor;
-			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,n*m},&temp_distances_tensor));
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,max_mn,max_mn},&temp_distances_tensor));
 			auto temp_distances_flat=temp_distances_tensor.flat<float>();
 			float * distances=&(temp_distances_flat(0));
 			
 			Tensor temp_indices_tensor;
-			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,n},&temp_indices_tensor));
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,max_mn},&temp_indices_tensor));
 			auto temp_indices_flat=temp_indices_tensor.flat<int>();
 			int * indices=&(temp_indices_flat(0));
 
@@ -323,6 +325,8 @@ class MultiEmdOp: public OpKernel{
 			
 			int m=xyz2_tensor.shape().dim_size(1);
 			
+			int max_mn = (n > m) ? n : m;
+			
 			Tensor * offset1_tensor=NULL;
 			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,n,3},&offset1_tensor));
 			auto offset1_flat=offset1_tensor->flat<float>();
@@ -339,12 +343,12 @@ class MultiEmdOp: public OpKernel{
 			float * match=&(match_flat(0));
 			
 			Tensor temp_distances_tensor;
-			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,n*m},&temp_distances_tensor));
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,max_mn,max_mn},&temp_distances_tensor));
 			auto temp_distances_flat=temp_distances_tensor.flat<float>();
 			float * distances=&(temp_distances_flat(0));
 			
 			Tensor temp_indices_tensor;
-			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,n},&temp_indices_tensor));
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,max_mn},&temp_indices_tensor));
 			auto temp_indices_flat=temp_indices_tensor.flat<int>();
 			int * indices=&(temp_indices_flat(0));
 
