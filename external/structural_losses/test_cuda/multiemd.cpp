@@ -256,7 +256,7 @@ int main()
 		
 	float * offset1 = new float[b*n*3];
 	float * offset2 = new float[b*n*3];
-	float * distances = new float[b*n];
+	float * distances = new float[b*n*n];
 	int * indices = new int[b*n];
 
 	for (int i=0;i<b*n*3;i++)
@@ -291,7 +291,7 @@ int main()
 	float * offset2_g;
 	cudaMalloc(&offset2_g,b*m*3*4);
 	float * distances_g;
-	cudaMalloc(&distances_g,b*n*4);
+	cudaMalloc(&distances_g,b*n*n*4);
 	int * indices_g;
 	cudaMalloc(&indices_g,b*n*4);
 
@@ -306,7 +306,7 @@ int main()
 	
 	cudaMemset(offset1_g,0,b*n*3*4);
 	cudaMemset(offset2_g,0,b*m*3*4);
-	cudaMemset(distances_g,0,b*n*4);
+	cudaMemset(distances_g,0,b*n*n*4);
 	cudaMemset(indices_g,0,b*n*4);
 	
 	double besttime=0;
