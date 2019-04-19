@@ -10,7 +10,7 @@ all: multiemd
 
 multiemd: multiemd.cu.o multiemd.cpp sort_indices.c.o
 	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 --device-link -o multiemd_link.o multiemd.cu.o sort_indices.c.o -I . -DGOOGLE_CUDA=1 
-	g++ -o multiemd -std=c++11 multiemd.cpp multiemd.cu.o sort_indices.c.o multiemd_link.o -I . -I /usr/local/cuda/include -lcudart -L $(cudalib) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 
+	g++ -g -o multiemd -std=c++11 multiemd.cpp multiemd.cu.o sort_indices.c.o multiemd_link.o -I . -I /usr/local/cuda/include -lcudart -L $(cudalib) -O2 -D_GLIBCXX_USE_CXX11_ABI=0 
 
 multiemd.cu.o: multiemd.cu 
 	$(nvcc) -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 --device-c -o multiemd.cu.o multiemd.cu -I . -DGOOGLE_CUDA=1 -x cu $(x_flags) $(nvcc_flags)

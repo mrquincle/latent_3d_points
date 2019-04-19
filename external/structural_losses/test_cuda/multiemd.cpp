@@ -265,9 +265,9 @@ int main()
 		xyz2[i]=randomf();
 	
 	double t0=get_time();
-	multiemd_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,distances,indices);
+	multiemd_cpu(b,n,m,xyz1,xyz2,match_cpu,offset1,offset2,distances,indices);
 	printf("multiemd cpu time %f\n",get_time()-t0);
-	multiemdcost_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,cost_cpu);
+	multiemdcost_cpu(b,n,m,xyz1,xyz2,match_cpu,offset1,offset2,cost_cpu);
 	multiemdcostgrad_cpu(2,n,m,xyz1,xyz2,match_cpu,offset1,offset2,grad1_cpu,grad2_cpu);
 
 	float * xyz1_g;
