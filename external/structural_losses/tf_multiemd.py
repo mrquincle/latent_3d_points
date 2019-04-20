@@ -20,8 +20,7 @@ returns:
 	offset1 : batch_size * #dataset_points * 3
 	offset2 : batch_size * #query_points * 3
 	'''
-	match,offset1,offset2=multiemd_module.multi_emd(xyz1,xyz2)
-	return [match,offset1,offset2]
+	return multiemd_module.multi_emd(xyz1,xyz2)
 ops.NoGradient('MultiEmd')
 #@tf.RegisterShape('MultiEmd')
 @ops.RegisterShape('MultiEmd')

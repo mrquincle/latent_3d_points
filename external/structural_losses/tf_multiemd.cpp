@@ -253,19 +253,19 @@ class MultiEmdGpuOp: public OpKernel{
 		explicit MultiEmdGpuOp(OpKernelConstruction* context):OpKernel(context){}
 		void Compute(OpKernelContext * context)override{
 			const Tensor& xyz1_tensor=context->input(0);
-			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz1 shape"));
+			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdGpuOp expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
 			int b=xyz1_tensor.shape().dim_size(0);
 			int n=xyz1_tensor.shape().dim_size(1);
-			//OP_REQUIRES(context,n<=4096,errors::InvalidArgument("MultiEmd handles at most 4096 dataset points"));
+			//OP_REQUIRES(context,n<=4096,errors::InvalidArgument("MultiEmdGpuOp handles at most 4096 dataset points"));
 
 			const Tensor& xyz2_tensor=context->input(1);
-			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
+			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdGpuOp expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
 			int m=xyz2_tensor.shape().dim_size(1);
 
 			int max_mn = (n > m) ? n : m;
-			//OP_REQUIRES(context,m<=1024,errors::InvalidArgument("MultiEmd handles at most 1024 query points"));
+			//OP_REQUIRES(context,m<=1024,errors::InvalidArgument("MultiEmdGpuOp handles at most 1024 query points"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
 
@@ -309,17 +309,17 @@ class MultiEmdOp: public OpKernel{
 		explicit MultiEmdOp(OpKernelConstruction* context):OpKernel(context){}
 		void Compute(OpKernelContext * context)override{
 			const Tensor& xyz1_tensor=context->input(0);
-			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz1 shape"));
+			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdOp expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
 			
 			int b=xyz1_tensor.shape().dim_size(0);
 			int n=xyz1_tensor.shape().dim_size(1);
-			//OP_REQUIRES(context,n<=4096,errors::InvalidArgument("MultiEmd handles at most 4096 dataset points"));
+			//OP_REQUIRES(context,n<=4096,errors::InvalidArgument("MultiEmdOp handles at most 4096 dataset points"));
 
 			const Tensor& xyz2_tensor=context->input(1);
-			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmd expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
-			//OP_REQUIRES(context,m<=1024,errors::InvalidArgument("MultiEmd handles at most 1024 query points"));
+			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdOp expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
+			//OP_REQUIRES(context,m<=1024,errors::InvalidArgument("MultiEmdOp handles at most 1024 query points"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
 			
@@ -362,7 +362,7 @@ class MultiEmdCostGpuOp: public OpKernel{
 		explicit MultiEmdCostGpuOp(OpKernelConstruction* context):OpKernel(context){}
 		void Compute(OpKernelContext * context)override{
 			const Tensor& xyz1_tensor=context->input(0);
-			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz1 shape"));
+			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCostGpuOp expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
 
@@ -370,24 +370,24 @@ class MultiEmdCostGpuOp: public OpKernel{
 			int n=xyz1_tensor.shape().dim_size(1);
 
 			const Tensor& xyz2_tensor=context->input(1);
-			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
+			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCostGpuOp expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
 			
 			int m=xyz2_tensor.shape().dim_size(1);
 
 			const Tensor& match_tensor=context->input(2);
-			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,#query,#dataset) match shape"));
+			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCostGpuOp expects (batch_size,#query,#dataset) match shape"));
 			auto match_flat=match_tensor.flat<float>();
 			const float * match=&(match_flat(0));
 			
 			const Tensor& offset1_tensor=context->input(3);
-			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCostGpuOp expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
-			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCostGpuOp expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
@@ -405,7 +405,7 @@ class MultiEmdCostOp: public OpKernel{
 		explicit MultiEmdCostOp(OpKernelConstruction* context):OpKernel(context){}
 		void Compute(OpKernelContext * context)override{
 			const Tensor& xyz1_tensor=context->input(0);
-			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz1 shape"));
+			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCostOp expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
 
@@ -413,24 +413,24 @@ class MultiEmdCostOp: public OpKernel{
 			int n=xyz1_tensor.shape().dim_size(1);
 
 			const Tensor& xyz2_tensor=context->input(1);
-			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
+			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCostOp expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
 			
 			int m=xyz2_tensor.shape().dim_size(1);
 
 			const Tensor& match_tensor=context->input(2);
-			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,#query,#dataset) match shape"));
+			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCostOp expects (batch_size,#query,#dataset) match shape"));
 			auto match_flat=match_tensor.flat<float>();
 			const float * match=&(match_flat(0));
 			
 			const Tensor& offset1_tensor=context->input(3);
-			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCostOp expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
-			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCostOp expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
@@ -448,7 +448,7 @@ class MultiEmdCostGradGpuOp: public OpKernel{
 		explicit MultiEmdCostGradGpuOp(OpKernelConstruction* context):OpKernel(context){}
 		void Compute(OpKernelContext * context)override{
 			const Tensor& xyz1_tensor=context->input(0);
-			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCostGrad expects (batch_size,num_points,3) xyz1 shape"));
+			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCostGradGpuOp expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
 
@@ -456,24 +456,24 @@ class MultiEmdCostGradGpuOp: public OpKernel{
 			int n=xyz1_tensor.shape().dim_size(1);
 
 			const Tensor& xyz2_tensor=context->input(1);
-			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCostGrad expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
+			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCostGradGpuOp expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
 			
 			int m=xyz2_tensor.shape().dim_size(1);
 
 			const Tensor& match_tensor=context->input(2);
-			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,#query,#dataset) match shape"));
+			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCostGradGpuOp expects (batch_size,#query,#dataset) match shape"));
 			auto match_flat=match_tensor.flat<float>();
 			const float * match=&(match_flat(0));
 			
 			const Tensor& offset1_tensor=context->input(3);
-			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCostGradGpuOp expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
-			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCostGradGpuOp expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
@@ -495,7 +495,7 @@ class MultiEmdCostGradOp: public OpKernel{
 		explicit MultiEmdCostGradOp(OpKernelConstruction* context):OpKernel(context){}
 		void Compute(OpKernelContext * context)override{
 			const Tensor& xyz1_tensor=context->input(0);
-			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz1 shape"));
+			OP_REQUIRES(context,xyz1_tensor.dims()==3 && xyz1_tensor.shape().dim_size(2)==3,errors::InvalidArgument("MultiEmdCostGradOp expects (batch_size,num_points,3) xyz1 shape"));
 			auto xyz1_flat=xyz1_tensor.flat<float>();
 			const float * xyz1=&(xyz1_flat(0));
 
@@ -503,24 +503,24 @@ class MultiEmdCostGradOp: public OpKernel{
 			int n=xyz1_tensor.shape().dim_size(1);
 
 			const Tensor& xyz2_tensor=context->input(1);
-			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
+			OP_REQUIRES(context,xyz2_tensor.dims()==3 && xyz2_tensor.shape().dim_size(2)==3 && xyz2_tensor.shape().dim_size(0)==b,errors::InvalidArgument("MultiEmdCostGradOp expects (batch_size,num_points,3) xyz2 shape, and batch_size must match"));
 			auto xyz2_flat=xyz2_tensor.flat<float>();
 			const float * xyz2=&(xyz2_flat(0));
 			
 			int m=xyz2_tensor.shape().dim_size(1);
 
 			const Tensor& match_tensor=context->input(2);
-			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,#query,#dataset) match shape"));
+			OP_REQUIRES(context,match_tensor.dims()==3 && match_tensor.shape().dim_size(0)==b && match_tensor.shape().dim_size(1)==m && match_tensor.shape().dim_size(2)==n,errors::InvalidArgument("MultiEmdCostGradOp expects (batch_size,#query,#dataset) match shape"));
 			auto match_flat=match_tensor.flat<float>();
 			const float * match=&(match_flat(0));
 
 			const Tensor& offset1_tensor=context->input(3);
-			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset1_tensor.dims()==3 && offset1_tensor.shape().dim_size(2)==3 && offset1_tensor.shape().dim_size(0)==b && offset1_tensor.shape().dim_size(1)==n,errors::InvalidArgument("MultiEmdCostGradOp expects (batch_size,num_points,3) offset1 shape, and batch_size must match"));
 			auto offset1_flat=offset1_tensor.flat<float>();
 			const float * offset1=&(offset1_flat(0));
 
 			const Tensor& offset2_tensor=context->input(4);
-			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCost expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
+			OP_REQUIRES(context,offset2_tensor.dims()==3 && offset2_tensor.shape().dim_size(2)==3 && offset2_tensor.shape().dim_size(0)==b && offset2_tensor.shape().dim_size(1)==m,errors::InvalidArgument("MultiEmdCostGradOp expects (batch_size,num_points,3) offset2 shape, and batch_size must match"));
 			auto offset2_flat=offset2_tensor.flat<float>();
 			const float * offset2=&(offset2_flat(0));
 
