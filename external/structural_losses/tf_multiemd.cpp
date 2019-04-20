@@ -326,22 +326,22 @@ class MultiEmdOp: public OpKernel{
 			int m=xyz2_tensor.shape().dim_size(1);
 			
 			int max_mn = (n > m) ? n : m;
-			
+
+			Tensor * match_tensor=NULL;
+			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,n},&match_tensor));
+			auto match_flat=match_tensor->flat<float>();
+			float * match=&(match_flat(0));
+						
 			Tensor * offset1_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,n,3},&offset1_tensor));
+			OP_REQUIRES_OK(context,context->allocate_output(1,TensorShape{b,n,3},&offset1_tensor));
 			auto offset1_flat=offset1_tensor->flat<float>();
 			float * offset1=&(offset1_flat(0));
 			
 			Tensor * offset2_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(1,TensorShape{b,m,3},&offset2_tensor));
+			OP_REQUIRES_OK(context,context->allocate_output(2,TensorShape{b,m,3},&offset2_tensor));
 			auto offset2_flat=offset2_tensor->flat<float>();
 			float * offset2=&(offset2_flat(0));
 
-			Tensor * match_tensor=NULL;
-			OP_REQUIRES_OK(context,context->allocate_output(2,TensorShape{b,m,n},&match_tensor));
-			auto match_flat=match_tensor->flat<float>();
-			float * match=&(match_flat(0));
-			
 			Tensor temp_distances_tensor;
 			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,max_mn,max_mn},&temp_distances_tensor));
 			auto temp_distances_flat=temp_distances_tensor.flat<float>();
@@ -481,6 +481,7 @@ class MultiEmdCostGradGpuOp: public OpKernel{
 			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,n,3},&grad1_tensor));
 			auto grad1_flat=grad1_tensor->flat<float>();
 			float * grad1=&(grad1_flat(0));
+
 			Tensor * grad2_tensor=NULL;
 			OP_REQUIRES_OK(context,context->allocate_output(1,TensorShape{b,m,3},&grad2_tensor));
 			auto grad2_flat=grad2_tensor->flat<float>();
