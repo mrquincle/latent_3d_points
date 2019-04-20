@@ -57,8 +57,9 @@ CUDA_HOST_DEVICE int count_items_below_threshold(int n, const float* values, con
   return result;
 }
 
-// result should be allocated and zero
+// result should be allocated, is initialized to 0 here
 CUDA_HOST_DEVICE void dist(const float *p1, const float *p2, float *result) {
+  *result = 0;
   for (int i = 0; i < dim; ++i) {
     *result += ((p1[i] - p2[i]) * (p1[i] - p2[i]));
   }
