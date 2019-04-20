@@ -47,9 +47,8 @@ tf_nndistance_g.cu.o: tf_nndistance_g.cu
 
 
 clean:
-	rm -f tf_approxmatch_so.so
-	rm -f tf_nndistance_so.so
-	rm -f *.cu.o 
+	rm -f *.so
+	rm -f *.o 
 
 # Remove built-in rules (or Makefile will think it knows how to create .cu.o files from source files, here .cu).
 .SUFFIXES:
