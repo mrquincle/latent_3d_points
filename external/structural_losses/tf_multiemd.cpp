@@ -61,7 +61,7 @@ REGISTER_OP("MultiEmdCostGrad")
  */
 void multiemd_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,float * match,
 		float * offset1,float * offset2, float *distances, int * indices){
-	
+
 	// offset is calculated per individual point, not per pair
 	// we calculate it once for the entire dataset and only then perform batches
 	calc_offset(n*b, xyz1, offset1, distances, indices);
@@ -289,11 +289,13 @@ class MultiEmdGpuOp: public OpKernel{
 			auto temp_flat=temp_tensor.flat<float>();
 			float * temp=&(temp_flat(0));
 			
+			// shape should fit b*n x b*n distances, if n > m
 			Tensor temp_distances_tensor;
-			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,max_mn,max_mn},&temp_distances_tensor));
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b*b,max_mn*max_mn},&temp_distances_tensor));
 			auto temp_distances_flat=temp_distances_tensor.flat<float>();
 			float * distances=&(temp_distances_flat(0));
 			
+			// shape should fit b*n indices, if n > m
 			Tensor temp_indices_tensor;
 			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,max_mn},&temp_indices_tensor));
 			auto temp_indices_flat=temp_indices_tensor.flat<int>();
@@ -331,22 +333,26 @@ class MultiEmdOp: public OpKernel{
 			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,n},&match_tensor));
 			auto match_flat=match_tensor->flat<float>();
 			float * match=&(match_flat(0));
-						
+
+			// same shape as xyz1
 			Tensor * offset1_tensor=NULL;
 			OP_REQUIRES_OK(context,context->allocate_output(1,TensorShape{b,n,3},&offset1_tensor));
 			auto offset1_flat=offset1_tensor->flat<float>();
 			float * offset1=&(offset1_flat(0));
 			
+			// same shape as xyz2
 			Tensor * offset2_tensor=NULL;
 			OP_REQUIRES_OK(context,context->allocate_output(2,TensorShape{b,m,3},&offset2_tensor));
 			auto offset2_flat=offset2_tensor->flat<float>();
 			float * offset2=&(offset2_flat(0));
 
+			// shape should fit b*n x b*n distances, if n > m
 			Tensor temp_distances_tensor;
-			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,max_mn,max_mn},&temp_distances_tensor));
+			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b*b,max_mn*max_mn},&temp_distances_tensor));
 			auto temp_distances_flat=temp_distances_tensor.flat<float>();
 			float * distances=&(temp_distances_flat(0));
 			
+			// shape should fit b*n 
 			Tensor temp_indices_tensor;
 			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<int>::value,TensorShape{b,max_mn},&temp_indices_tensor));
 			auto temp_indices_flat=temp_indices_tensor.flat<int>();
