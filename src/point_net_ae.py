@@ -115,7 +115,9 @@ class PointNetAutoEncoder(AutoEncoder):
             gt_shift = self.shift_points(self.gt)
             match1 = approx_match(x_reconstr_shift, gt_shift) 
             match2 = approx_match(self.x_reconstr, self.gt)
-            self.loss = (lagrange)*tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match1)) + (1-lagrange)*tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match2))
+            self.loss = tf.reduce_mean(
+                    lagrange * match_cost(x_reconstr_shift, gt_shift, match1) + 
+                    (1.0 - lagrange) * match_cost(self.x_reconstr, self.gt, match2))
         elif c.loss == 'shift_emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
