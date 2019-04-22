@@ -104,8 +104,12 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
-            match = approx_match(self.shift_points(self.x_reconstr), self.shift_points(self.gt))
-            self.loss = tf.reduce_mean(match_cost(self.shift_points(self.x_reconstr), self.shift_points(self.gt), match))
+            x_reconstr_shift = shift_points(self.x_reconstr)
+            gt_shift = shift_points(self.gt)
+            match = approx_match(x_reconstr_shift, gt_shift)
+            self.loss = tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match))
+            #match = approx_match(self.shift_points(self.x_reconstr), self.shift_points(self.gt))
+            #self.loss = tf.reduce_mean(match_cost(self.shift_points(self.x_reconstr), self.shift_points(self.gt), match))
             #match = approx_match(self.x_reconstr, self.gt)
             #self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'multi_emd':
