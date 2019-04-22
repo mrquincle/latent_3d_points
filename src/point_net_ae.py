@@ -82,7 +82,7 @@ class PointNetAutoEncoder(AutoEncoder):
         return row_norms_A - 2 * tf.matmul(A, tf.transpose(A)) + tf.transpose(row_norms_A)
 
     def shift_points(self, pnts):
-        dist = euclidean_dist_sq(pnts)
+        dist = self.euclidean_dist_sq(pnts)
 
         # get all elements smaller than window=2.0 (indices)
         # this is a nxn matrix where each row does indicate the values to be averaged
@@ -104,8 +104,11 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
-            x_reconstr_shift = self.shift_points(self.x_reconstr)
-            gt_shift = self.shift_points(self.gt)
+            testfn = self.euclidean_dist_sq(self.gt)
+            #x_reconstr_shift = self.shift_points(self.x_reconstr)
+            #gt_shift = self.shift_points(self.gt)
+            x_reconstr_shift = self.x_reconstr
+            gt_shift = self.gt
             match = approx_match(x_reconstr_shift, gt_shift)
             self.loss = tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match))
             #match = approx_match(self.shift_points(self.x_reconstr), self.shift_points(self.gt))
