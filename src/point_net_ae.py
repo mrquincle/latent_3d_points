@@ -85,7 +85,7 @@ class PointNetAutoEncoder(AutoEncoder):
         pnts_shape = tf.shape(pnts)
         pnts_allb = tf.reshape(pnts, [pnts_shape[0]*pnts_shape[1],pnts_shape[2]])
 
-        dist = euclidean_dist_sq(pnts_allb)
+        dist = self.euclidean_dist_sq(pnts_allb)
         # get all elements smaller than window=2.0 (indices)
         # this is a nxn matrix where each row does indicate the values to be averaged
         idx = tf.less(dist, 4.0)
