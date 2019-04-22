@@ -76,6 +76,25 @@ class PointNetAutoEncoder(AutoEncoder):
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
 
+    def euclidean_dist_sq(A):
+        row_norms_A = tf.reduce_sum(tf.square(A), axis=1)
+        row_norms_A = tf.reshape(row_norms_A, [-1, 1])  # Column vector.
+        return row_norms_A - 2 * tf.matmul(A, tf.transpose(A)) + tf.transpose(row_norms_A)
+
+    def shift_points(pnts):
+        dist = euclidean_dist_sq(pnts)
+
+        # get all elements smaller than window=2.0 (indices)
+        # this is a nxn matrix where each row does indicate the values to be averaged
+        idx = tf.less(dist, 4.0)
+
+        # calculate mean of those elements
+        fun = lambda x : tf.reduce_mean(tf.boolean_mask(pnts,x), 0)
+        mean = tf.map_fn (fun, idx, dtype=tf.float32) 
+        opnts = tf.subtract(pnts,mean)
+        return opnts
+
+
     def _create_loss(self):
         c = self.configuration
 
@@ -85,8 +104,10 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
-            match = approx_match(self.x_reconstr, self.gt)
-            self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+            match = approx_match(self.shift_points(self.x_reconstr), self.shift_points(self.gt))
+            self.loss = tf.reduce_mean(match_cost(self.shift_points(self.x_reconstr), self.shift_points(self.gt), match))
+            #match = approx_match(self.x_reconstr, self.gt)
+            #self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'multi_emd':
             match = tf.constant(1.0)
             offset1 = tf.constant(1.0)
