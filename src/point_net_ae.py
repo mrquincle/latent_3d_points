@@ -105,16 +105,23 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
-
+            match = approx_match(self.x_reconstr, self.gt)
+            self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+        elif c.loss == 'lagrange_emd':
+            match = tf.constant(1.0)
+            self.loss = tf.constant(1.0)
+            lagrange = 0.5
             x_reconstr_shift = self.shift_points(self.x_reconstr)
             gt_shift = self.shift_points(self.gt)
-            #x_reconstr_shift = self.x_reconstr
-            #gt_shift = self.gt
-
+            match = (lagrange)*approx_match(x_reconstr_shift, gt_shift) + (1-lagrange)*approx_match(self.x_reconstr, self.gt)
+            self.loss = (lagrange)*tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match)) + (1-lagrange)*tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+        elif c.loss == 'shift_emd':
+            match = tf.constant(1.0)
+            self.loss = tf.constant(1.0)
+            x_reconstr_shift = self.shift_points(self.x_reconstr)
+            gt_shift = self.shift_points(self.gt)
             match = approx_match(x_reconstr_shift, gt_shift)
             self.loss = tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match))
-            #match = approx_match(self.x_reconstr, self.gt)
-            #self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'multi_emd':
             match = tf.constant(1.0)
             offset1 = tf.constant(1.0)
