@@ -82,18 +82,19 @@ class PointNetAutoEncoder(AutoEncoder):
         return row_norms_A - 2 * tf.matmul(A, tf.transpose(A)) + tf.transpose(row_norms_A)
 
     def shift_points(self, pnts):
-        dist = self.euclidean_dist_sq(pnts)
+        pnts_shape = tf.shape(pnts)
+        pnts_allb = tf.reshape(pnts, [pnts_shape[0]*pnts_shape[1],pnts_shape[2]])
 
+        dist = euclidean_dist_sq(pnts_allb)
         # get all elements smaller than window=2.0 (indices)
         # this is a nxn matrix where each row does indicate the values to be averaged
         idx = tf.less(dist, 4.0)
 
         # calculate mean of those elements
-        fun = lambda x : tf.reduce_mean(tf.boolean_mask(pnts,x), 0)
-        mean = tf.map_fn (fun, idx, dtype=tf.float32) 
+        fun = lambda x : tf.reduce_mean(tf.boolean_mask(pnts_allb,x), 0)
+        mean = tf.reshape(tf.map_fn (fun, idx, dtype=tf.float32), shape=pnts_shape)
         opnts = tf.subtract(pnts,mean)
         return opnts
-
 
     def _create_loss(self):
         c = self.configuration
@@ -104,15 +105,14 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
-            testfn = self.euclidean_dist_sq(self.gt)
-            #x_reconstr_shift = self.shift_points(self.x_reconstr)
-            #gt_shift = self.shift_points(self.gt)
-            x_reconstr_shift = self.x_reconstr
-            gt_shift = self.gt
+
+            x_reconstr_shift = self.shift_points(self.x_reconstr)
+            gt_shift = self.shift_points(self.gt)
+            #x_reconstr_shift = self.x_reconstr
+            #gt_shift = self.gt
+
             match = approx_match(x_reconstr_shift, gt_shift)
             self.loss = tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match))
-            #match = approx_match(self.shift_points(self.x_reconstr), self.shift_points(self.gt))
-            #self.loss = tf.reduce_mean(match_cost(self.shift_points(self.x_reconstr), self.shift_points(self.gt), match))
             #match = approx_match(self.x_reconstr, self.gt)
             #self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'multi_emd':
