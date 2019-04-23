@@ -120,7 +120,7 @@ class PointNetAutoEncoder(AutoEncoder):
             lagrange = c.lagrange
         else:
             lagrange = 0.001
-        print('Lagrange loss set to ', lagrange)
+        print('Lagrange loss set to', lagrange)
 
         if c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
@@ -218,6 +218,14 @@ class PointNetAutoEncoder(AutoEncoder):
         duration = time.time() - start_time
         
         if configuration.loss == 'emd':
+            epoch_loss /= len(train_data.point_clouds[0])
+        elif configuration.loss == 'lagrange_emd':
+            epoch_loss /= len(train_data.point_clouds[0])
+        elif configuration.loss == 'shift_emd':
+            epoch_loss /= len(train_data.point_clouds[0])
+        elif configuration.loss == 'batch_shift_emd':
+            epoch_loss /= len(train_data.point_clouds[0])
+        elif configuration.loss == 'multi_emd':
             epoch_loss /= len(train_data.point_clouds[0])
         
         return epoch_loss, duration
