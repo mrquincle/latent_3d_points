@@ -96,8 +96,8 @@ class PointNetAutoEncoder(AutoEncoder):
         opnts = tf.subtract(pnts,mean)
         return opnts
 
-    def shift_points_batch(pnts):
-        dist = euclidean_dist_sq(pnts)
+    def shift_points_batch(self, pnts):
+        dist = self.euclidean_dist_sq(pnts)
         
         # get all elements smaller than window=2.0 (indices)
         # this is a nxn matrix where each row does indicate the values to be averaged
@@ -109,8 +109,8 @@ class PointNetAutoEncoder(AutoEncoder):
         opnts = tf.subtract(pnts,mean)
         return opnts
 
-    def shift_points_all(pnts):
-        opnts = tf.map_fn (shift_points_batch,pnts)
+    def shift_points_all(self, pnts):
+        opnts = tf.map_fn (self.shift_points_batch,pnts)
         return opnts
 
     def _create_loss(self):
