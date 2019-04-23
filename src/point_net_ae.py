@@ -62,11 +62,6 @@ class PointNetAutoEncoder(AutoEncoder):
             else:
                 growth = True
             
-            if hasattr(c, 'lagrange'):
-                c.lagrange = c.lagrange_multiplier
-            else:
-                c.lagrange = 0.001
-
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = growth
 
@@ -103,6 +98,11 @@ class PointNetAutoEncoder(AutoEncoder):
 
     def _create_loss(self):
         c = self.configuration
+        
+        if c.exists_and_is_not_none('lagrange'):
+            lagrange = c.lagrange
+        else:
+            lagrange = 0.001
 
         if c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
@@ -120,8 +120,8 @@ class PointNetAutoEncoder(AutoEncoder):
             match1 = approx_match(x_reconstr_shift, gt_shift) 
             match2 = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(
-                    c.lagrange * match_cost(x_reconstr_shift, gt_shift, match1) + 
-                    (1.0 - c.lagrange) * match_cost(self.x_reconstr, self.gt, match2))
+                    lagrange * match_cost(x_reconstr_shift, gt_shift, match1) + 
+                    (1.0 - lagrange) * match_cost(self.x_reconstr, self.gt, match2))
         elif c.loss == 'shift_emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
