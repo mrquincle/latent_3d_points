@@ -148,6 +148,15 @@ class PointNetAutoEncoder(AutoEncoder):
             gt_shift = self.shift_points(self.gt)
             match = approx_match(x_reconstr_shift, gt_shift)
             self.loss = tf.reduce_mean(match_cost(x_reconstr_shift, gt_shift, match))
+        elif c.loss == 'match_shift_emd':
+            match = tf.constant(1.0)
+            self.loss = tf.constant(1.0)
+            x_reconstr_shift = self.shift_points(self.x_reconstr)
+            gt_shift = self.shift_points(self.gt)
+            # calculate match using translation invariance
+            match = approx_match(x_reconstr_shift, gt_shift)
+            # calculate loss given match but using original point clouds
+            self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'batch_shift_emd':
             match = tf.constant(1.0)
             self.loss = tf.constant(1.0)
@@ -163,6 +172,7 @@ class PointNetAutoEncoder(AutoEncoder):
             match,offset1,offset2 = multi_emd(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(multi_emd_cost(self.x_reconstr, self.gt, match, offset1, offset2))
 
+        # Add regularization losses to self.loss
         reg_losses = self.graph.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         if c.exists_and_is_not_none('w_reg_alpha'):
             w_reg_alpha = c.w_reg_alpha
@@ -230,6 +240,12 @@ class PointNetAutoEncoder(AutoEncoder):
         
         return epoch_loss, duration
 
+    # Function that calculates the gradient given two point clouds. If there are not points generated yet, the
+    # point clouds are assumed to be the same (gradient 0).
+    #
+    # @param in_points   Input point cloud
+    # @param gt_points   Generated point cloud
+    #
     def gradient_of_input_wrt_loss(self, in_points, gt_points=None):
         if gt_points is None:
             gt_points = in_points
