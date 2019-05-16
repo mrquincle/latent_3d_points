@@ -235,6 +235,8 @@ class PointNetAutoEncoder(AutoEncoder):
             epoch_loss /= len(train_data.point_clouds[0])
         elif configuration.loss == 'batch_shift_emd':
             epoch_loss /= len(train_data.point_clouds[0])
+        elif configuration.loss == 'match_shift_emd':
+            epoch_loss /= len(train_data.point_clouds[0])
         elif configuration.loss == 'multi_emd':
             epoch_loss /= len(train_data.point_clouds[0])
         
