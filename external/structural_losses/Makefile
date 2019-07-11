@@ -19,7 +19,13 @@ nvcc_flags=--expt-relaxed-constexpr
 # does not work to remove the "missing return statement at end of void function" warnings, but let's just keep it there
 x_flags=-Xcompiler -Wno-return-type -Xcompiler -fPIC -O2
 
-ld_flags=-L$(tensorflow) -ltensorflow_framework
+# Check compiler/linker options for shared libraries if things can't be found with something like:
+#   import tensorflow as tf
+#   from __future__ import print_function
+#   print(tf.sysconfig.get_compile_flags())
+#   print(tf.sysconfig.get_link_flags())
+
+ld_flags=-L$(tensorflow) -l:libtensorflow_framework.so.1
 
 all: tf_multiemd_so.so tf_approxmatch_so.so tf_nndistance_so.so
 
