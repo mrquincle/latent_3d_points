@@ -3,7 +3,7 @@
 This repository builds on top of the [optas](https://github.com/optas/latent_3d_points) repository. That code base is created
 by [Panos Achlioptas](http://web.stanford.edu/~optas/), [Olga Diamanti](http://web.stanford.edu/~diamanti/), 
 [Ioannis Mitliagkas](http://mitliagkas.github.io), and [Leonidas J. Guibas](http://geometry.stanford.edu/member/guibas).
-There work is based on an [arXiv tech report](https://arxiv.org/abs/1707.02392). 
+Their work is based on an [arXiv tech report](https://arxiv.org/abs/1707.02392). 
 
 It is a deep net architecture for auto-encoding point clouds. Check also the [project webpage](http://stanford.edu/~optas/).
 
