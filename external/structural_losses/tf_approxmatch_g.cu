@@ -278,7 +278,9 @@ __global__ void matchcostgrad1(int b,int n,int m,const float * __restrict__ xyz1
 				float x2=xyz2[i*m*3+k*3+0];
 				float y2=xyz2[i*m*3+k*3+1];
 				float z2=xyz2[i*m*3+k*3+2];
+				// why max? it should be >= 0 anyway
 				float d=match[i*n*m+k*n+l]*rsqrtf(fmaxf((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2),1e-20f));
+				// compared to cpu implementation += and *d rather than -= and /d.
 				dx+=(x1-x2)*d;
 				dy+=(y1-y2)*d;
 				dz+=(z1-z2)*d;

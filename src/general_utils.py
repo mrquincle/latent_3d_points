@@ -107,7 +107,7 @@ def unit_cube_grid_point_cloud(resolution, clip_sphere=False):
 
     return grid, spacing
 
-def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_u_sphere=False, marker='.', s=8, alpha=.8, figsize=(5, 5), elev=10, azim=240, axis=None, title=None, *args, **kwargs):
+def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_u_sphere=False, marker='.', s=8, alpha=.8, figsize=(5, 5), elev=10, azim=240, axis=None, title=None, file_index=0, *args, **kwargs):
 
     if axis is None:
         fig = plt.figure(figsize=figsize)
@@ -141,6 +141,12 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_u_sphere=False, m
         plt.colorbar(sc)
 
     if show:
+        print("Show plot");
         plt.show()
+
+    if file_index > 0:
+        ofile = 'autoencoder_results/interpolation' + str(file_index).zfill(5) + '.png';
+        print("Write to file", ofile);
+        plt.savefig(ofile)
 
     return fig

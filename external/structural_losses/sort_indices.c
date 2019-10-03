@@ -8,16 +8,37 @@
 
 #ifdef __CUDACC__
 #define CUDA_HOST_DEVICE __host__ __device__
+#define CUDA_HOST __host__
+#define CUDA_DEVICE __global__ __device__
 #else
 #define CUDA_HOST_DEVICE
+#define CUDA_HOST 
+#define CUDA_DEVICE 
 #endif
 
 // dim = 3, visibility limit to compilation unit
 static const int dim = 3;
 
-CUDA_HOST_DEVICE void insertionsort(const float *values, int *indices, int n) { 
+CUDA_HOST void insertionsort(const float *values, int *indices, int n) { 
   int i, key_i, j; 
+  // iterate over all values 
   for (i = 1; i < n; i++) { 
+    key_i = indices[i];
+    j = i - 1; 
+    // iterate over the values from i - 1 down to 0
+    while (j >= 0 && values[indices[j]] > values[key_i]) { 
+      // if value with lower index is larger replace at index just passed
+      indices[j + 1] = indices[j];
+      j = j - 1; 
+    } 
+    indices[j + 1] = key_i; 
+  } 
+}
+
+#ifdef __CUDACC__
+CUDA_DEVICE void insertionsort(const float *values, int *indices, int n) { 
+  int i, key_i, j; 
+  for (int i = blockIdx.x; i < n; i += gridDim.x) {
     key_i = indices[i];
     j = i - 1; 
     while (j >= 0 && values[indices[j]] > values[key_i]) { 
@@ -26,7 +47,8 @@ CUDA_HOST_DEVICE void insertionsort(const float *values, int *indices, int n) {
     } 
     indices[j + 1] = key_i; 
   } 
-} 
+}
+#endif
 
 /* Tensorflow has also argsort with slightly different arguments.
  *
@@ -95,13 +117,16 @@ CUDA_HOST_DEVICE void calc_offset(int n, const float *data, float *offset, float
     float *dist_for_i = &distances[i*n];
     argsort(n, dist_for_i, indices);
 
+    // for each data point i check with items are close to it (using window as threshold)
     int m_cnt = count_items_below_threshold(n, dist_for_i, indices, window);
 
+    // calculate the sum of the nearby data points 
     for (int j = 0; j < m_cnt; ++j) {
       for (int d = 0; d < dim; ++d) {
         offset[i*dim + d] += data[indices[j]*dim + d]; 
       }
     }
+    // calculate the average of the nearby data points
     if (m_cnt > 0) {
       for (int d = 0; d < dim; ++d) {
         offset[i*dim + d] /= (float)m_cnt;

@@ -23,12 +23,18 @@ try:
 except:
     print ('Sklearn module not installed (JSD metric will not work).')
 
+#    from .. external.structural_losses.tf_nndistance import nn_distance
+#    from .. external.structural_losses.tf_approxmatch import approx_match, match_cost
+
 try:    
-    from .. external.structural_losses.tf_nndistance import nn_distance
-    from .. external.structural_losses.tf_approxmatch import approx_match, match_cost
+    from .. external.structural_losses.tf_ops.nn_distance.tf_nndistance_cpu import nn_distance_cpu
 except:
-    print('External Losses (Chamfer-EMD) cannot be loaded. Please install them first.')
-    
+    print('nn_distance_cpu cannot be loaded. Please install them first.')
+
+try:    
+    from .. external.structural_losses.tf_ops.approxmatch.tf_approxmatch import approx_match, match_cost
+except:
+    print('tf_approxmatch cannot be loaded. Please install them first.')
 
 def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=True, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
     ''' Produces the graph operations necessary to compute the MMD and consequently also the Coverage due to their 'symmetric' nature.
@@ -76,7 +82,7 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=Tr
         if normalize:
             all_dist_in_batch /= n_pc_points
     else:
-        ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
+        ref_to_s, _, s_to_ref, _ = nn_distance_cpu(ref_repeat, sample_pl)
         if use_sqrt:
             ref_to_s = tf.sqrt(ref_to_s)
             s_to_ref = tf.sqrt(s_to_ref)

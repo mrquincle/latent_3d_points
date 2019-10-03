@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
+
 using namespace tensorflow;
+
 REGISTER_OP("ApproxMatch")
 	.Input("xyz1: float32")
 	.Input("xyz2: float32")
@@ -20,19 +22,56 @@ REGISTER_OP("MatchCostGrad")
 	.Output("grad1: float32")
 	.Output("grad2: float32");
 
+/**
+ * Paper: https://arxiv.org/pdf/1612.00603.pdf
+ *
+ * d_EMD(S1,S2) = min_\phi \sum_{x \in S1} || x - phi(x) ||_2
+ *
+ * The earth mover distance calculates the Euclidean distance || x - phi(x) ||_2. The optimal bijection \phi finds
+ * the closest point in S2 with respect to the given point in S1. This is called the assignment problem.
+ *
+ * Here a (1 + \epsilon) approximation scheme is used for the assignment problem, also called the bipartite perfect
+ * matching problem.
+ *
+ * Paper: https://ieeexplore.ieee.org/abstract/document/4048607/ (Bertsekas, 1985)
+ *
+ * This does not seem to be the case... The implementation does not look like an auction. It has weights, it might
+ * be something like this:  http://www.columbia.edu/~cs2035/courses/ieor8100.F18/GabTar.pdf. It is not clear which
+ * implementation has been used for the matching.
+ *
+ * Approximate the match using some kind of Earth Mover's Distance / 1-Wasserstein Distance. 
+ *
+ * We find the matching point for each element in xyz1 in the matrix xyz2.
+ *
+ * Output: match matrix of size b x n x m.
+ *
+ * @param b        number of batches
+ * @param n        number of points in point cloud 1 (batch)
+ * @param m        number of points in point cloud 2 (batch)
+ * @param xyz1     the xyz coordinates in point cloud 1 in format [x0 y0 z0 x1 y1 z1 ... xn yn zn]
+ * @param xyz2     the xyz coordinates in point cloud 2 in format [x0 y0 z0 x1 y1 z1 ... xn yn zn]
+ * @param match    result, zero matrix with only 1s when points in xyz1 and xyz2 match
+ */
 void approxmatch_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,float * match){
 	for (int i=0;i<b;i++){
 		int factorl=std::max(n,m)/n;
 		int factorr=std::max(n,m)/m;
+		// saturation says something about convergence
 		std::vector<double> saturatedl(n,double(factorl)),saturatedr(m,double(factorr));
+		// weights for each pair of points
 		std::vector<double> weight(n*m);
+		// init match matrix to 0
 		for (int j=0;j<n*m;j++)
 			match[j]=0;
+		// iterate over 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2
 		for (int j=8;j>=-2;j--){
+			// level is then -65536, -16384, ..., -4, -1, -1/4, -1/16, the latter of which is set to 0
 			//printf("i=%d j=%d\n",i,j);
 			double level=-powf(4.0,j);
 			if (j==-2)
 				level=0;
+			// iterate over all pairs and set the weight to an euclidean exp(distance * level) times saturation R
+			// exp over a very large negative number is 0
 			for (int k=0;k<n;k++){
 				double x1=xyz1[k*3+0];
 				double y1=xyz1[k*3+1];
@@ -44,35 +83,47 @@ void approxmatch_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,flo
 					weight[k*m+l]=expf(level*((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2)))*saturatedr[l];
 				}
 			}
+			// vector ss is sum for each l
 			std::vector<double> ss(m,1e-9);
 			for (int k=0;k<n;k++){
 				double s=1e-9;
+				// sum all weights
 				for (int l=0;l<m;l++){
 					s+=weight[k*m+l];
 				}
+				// normalize with sum and multiply each point in k with saturation L
 				for (int l=0;l<m;l++){
 					weight[k*m+l]=weight[k*m+l]/s*saturatedl[k];
 				}
+				// sum again for each point in l
 				for (int l=0;l<m;l++)
 					ss[l]+=weight[k*m+l];
 			}
+			// normalize now over l
 			for (int l=0;l<m;l++){
 				double s=ss[l];
 				double r=std::min(saturatedr[l]/s,1.0);
 				ss[l]=r;
 			}
+			// vector ss2 is yet another sum
 			std::vector<double> ss2(m,0);
 			for (int k=0;k<n;k++){
 				double s=0;
 				for (int l=0;l<m;l++){
+					// we multiply the weights with ss
 					weight[k*m+l]*=ss[l];
+					// we add them to the sum s
 					s+=weight[k*m+l];
+					// we add them also to the sum ss2
 					ss2[l]+=weight[k*m+l];
 				}
+				// here we calculate saturated L as saturated L minus s
 				saturatedl[k]=std::max(saturatedl[k]-s,0.0);
 			}
+			// write match matrix by adding weight, how is it only 0 or 1, it does not seem so.
 			for (int k=0;k<n*m;k++)
 				match[k]+=weight[k];
+			// saturation of R minus ss2
 			for (int l=0;l<m;l++){
 				saturatedr[l]=std::max(saturatedr[l]-ss2[l],0.0);
 			}
@@ -82,6 +133,27 @@ void approxmatch_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,flo
 		match+=n*m;
 	}
 }
+
+/**
+ * The cost function. We calculate the cost for each item in the batch b.
+ * Input xyz1 is of dimension b x n.
+ * Input xyz2 is of dimension b x m.
+ * Input match is of dimension b x n x m. It is 1 if the points in xyz1 and xyz2 match.
+ *
+ * For each matching point we calculate the Euclidian distance. Note that this is the 1-Wasserstein distance. 
+ * The distance metric is Euclidean and it is not squared p=2 or cubed p=3, or otherwise.
+ * The cost is just the sum of Euclidean distances.
+ *
+ * If b = 1, n is total number of points in point cloud 1. If b = 2, n should be half of that.
+ *
+ * @param b        number of batches
+ * @param n        number of points in point cloud 1 (batch)
+ * @param m        number of points in point cloud 2 (batch)
+ * @param xyz1     the xyz coordinates in point cloud 1 in format [x0 y0 z0 x1 y1 z1 ... xn yn zn]
+ * @param xyz2     the xyz coordinates in point cloud 2 in format [x0 y0 z0 x1 y1 z1 ... xn yn zn]
+ * @param match    zero matrix with only 1s when points in xyz1 and xyz2 match
+ * @param cost     result, for each matching point, calculate euclidean distance and calculate the overall sum
+ */
 void matchcost_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,float * cost){
 	for (int i=0;i<b;i++){
 		double s=0;
@@ -100,22 +172,26 @@ void matchcost_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,const
 		xyz1+=n*3;
 		xyz2+=m*3;
 		match+=n*m;
-		cost+=1;
+		cost+=1; // cost[0] = s; cost+=1; is exactly the same as just cost[i]=s;
 	}
 }
+
+/**
+ * Gradient, similar to matchcost_grad. There are two gradients calculated. 
+ */
 void matchcostgrad_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,float * grad1,float * grad2){
 	for (int i=0;i<b;i++){
 		for (int j=0;j<n;j++)
 			grad1[j*3+0]=0;
-		for (int j=0;j<m;j++){
+		for (int j=0;j<m;j++){ // note, index j and k are here swapped compared to matchcost_grad 
 			float sx=0,sy=0,sz=0;
-			for (int k=0;k<n;k++){
-				float x2=xyz2[j*3+0];
-				float y2=xyz2[j*3+1];
-				float z2=xyz2[j*3+2];
+			for (int k=0;k<n;k++){ // see note above
 				float x1=xyz1[k*3+0];
 				float y1=xyz1[k*3+1];
 				float z1=xyz1[k*3+2];
+				float x2=xyz2[j*3+0];
+				float y2=xyz2[j*3+1];
+				float z2=xyz2[j*3+2];
 				float d=std::max(sqrtf((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1)),1e-20f);
 				float dx=match[k*m+j]*((x2-x1)/d);
 				float dy=match[k*m+j]*((y2-y1)/d);
@@ -138,8 +214,11 @@ void matchcostgrad_cpu(int b,int n,int m,const float * xyz1,const float * xyz2,c
 		grad2+=m*3;
 	}
 }
+
 void approxmatchLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,float * match,float * temp);
+
 void matchcostLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,float * out);
+
 void matchcostgradLauncher(int b,int n,int m,const float * xyz1,const float * xyz2,const float * match,float * grad1,float * grad2);
 
 class ApproxMatchGpuOp: public OpKernel{
@@ -164,6 +243,9 @@ class ApproxMatchGpuOp: public OpKernel{
 			OP_REQUIRES_OK(context,context->allocate_output(0,TensorShape{b,m,n},&match_tensor));
 			auto match_flat=match_tensor->flat<float>();
 			float * match=&(match_flat(0));
+
+			// a temporary variable, we allocate it here, this is what we have to do with offset1 and offset2
+			// no, that does not work, it is not some state variable, it is used across different OpKernels
 			Tensor temp_tensor;
 			OP_REQUIRES_OK(context,context->allocate_temp(DataTypeToEnum<float>::value,TensorShape{b,(n+m)*2},&temp_tensor));
 			auto temp_flat=temp_tensor.flat<float>();
@@ -172,6 +254,7 @@ class ApproxMatchGpuOp: public OpKernel{
 		}
 };
 REGISTER_KERNEL_BUILDER(Name("ApproxMatch").Device(DEVICE_GPU), ApproxMatchGpuOp);
+
 class ApproxMatchOp: public OpKernel{
 	public:
 		explicit ApproxMatchOp(OpKernelConstruction* context):OpKernel(context){}
@@ -198,6 +281,7 @@ class ApproxMatchOp: public OpKernel{
 		}
 };
 REGISTER_KERNEL_BUILDER(Name("ApproxMatch").Device(DEVICE_CPU), ApproxMatchOp);
+
 class MatchCostGpuOp: public OpKernel{
 	public:
 		explicit MatchCostGpuOp(OpKernelConstruction* context):OpKernel(context){}
@@ -228,6 +312,7 @@ class MatchCostGpuOp: public OpKernel{
 		}
 };
 REGISTER_KERNEL_BUILDER(Name("MatchCost").Device(DEVICE_GPU), MatchCostGpuOp);
+
 class MatchCostOp: public OpKernel{
 	public:
 		explicit MatchCostOp(OpKernelConstruction* context):OpKernel(context){}
@@ -293,6 +378,7 @@ class MatchCostGradGpuOp: public OpKernel{
 		}
 };
 REGISTER_KERNEL_BUILDER(Name("MatchCostGrad").Device(DEVICE_GPU), MatchCostGradGpuOp);
+
 class MatchCostGradOp: public OpKernel{
 	public:
 		explicit MatchCostGradOp(OpKernelConstruction* context):OpKernel(context){}

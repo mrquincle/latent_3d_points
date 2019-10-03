@@ -18,6 +18,26 @@ REGISTER_OP("NnDistanceGrad")
 	.Output("grad_xyz2: float32");
 using namespace tensorflow;
 
+/**
+ * nnsearch: nearest neighbour search
+ *
+ * Input: two matrices, the first b x n which we loop through by (i,j) and the second b x m which we loop through by
+ * (i,k). We assume xyz1 have these dimensions and are packed with (x,y,z) coordinates. The distance between each
+ * element in the matices are calculate as: d = x^2 + y^2 + z^2. Semantically, the first b argument is the batch size,
+ * the second and third (n, m) are the size of the dataset: number of points. The batch size is the same.
+ *
+ * For each point xyz1 we pick the "best" point xyz2, where "best" means closest. We return the results in the arrays 
+ * dist and idx. The dist array contains the closest point, the idx array the index of the closest point.
+ *
+ * Note, this is not the Euclidean norm. Although we use Eculidean distances, we pick the nearest neighbour. We
+ * do not average over all points for each point cloud and then calculate the difference in means.
+ *
+ * This is the naive approach, running time O(dN). Space partition is often used as well, the simplest being a 
+ * k-d tree, running time, average complexity O(log N). For d=3, a BSP tree is often used.
+ *
+ * We might as well be satisfied with an approximate nearest neighbour implementation. Then locality-sensitive
+ * hasing is an option.
+ */
 static void nnsearch(int b,int n,int m,const float * xyz1,const float * xyz2,float * dist,int * idx){
 	for (int i=0;i<b;i++){
 		for (int j=0;j<n;j++){
@@ -42,6 +62,11 @@ static void nnsearch(int b,int n,int m,const float * xyz1,const float * xyz2,flo
 	}
 }
 
+/**
+ * Is this really the fastest implementation? The for loops in nndistance seem to be inefficient for a GPU. Moreover,
+ * to call nnsearch twice, one time to find nearest neighbour starting from the one set, the other time starting from
+ * the other set, seems inefficient as well.
+ */
 class NnDistanceOp : public OpKernel{
 	public:
 		explicit NnDistanceOp(OpKernelConstruction* context):OpKernel(context){}
