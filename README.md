@@ -40,6 +40,8 @@ sample to the next, the intermediate representations do not form cubes at all. T
 spread out cloud upon which they "become" in the end something resembling cubes again. Look at this animation on 
 [Twitter](https://t.co/xCtyJYvR9x) which makes this immediately clear.
 
+![Cube marching on](https://gist.githubusercontent.com/mrquincle/35a9d1e8a12bf86c0d059283611fe281/raw/f1b42226a2ea81267a51c114f1293b07cdbb44fb/cubes_emd_latent_sweep.gif)
+
 We need a more sophisticated form of optimal transport. A form of transport that can be compared with moving dirt 
 from one location to the next (as with ordinary earth mover's distance), but where we use trucks. We first move 
 everything from a particular location into a truck. Then we go to a particular destination and unload the truck. We
