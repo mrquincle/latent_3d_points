@@ -8,7 +8,11 @@ cudalib=/usr/local/cuda/lib64
 #
 python=python3.6
 
-tensorflow=/usr/local/lib/$(python)/dist-packages/tensorflow
+# Tensorflow 1.14.0
+#tensorflow=/usr/local/lib/$(python)/dist-packages/tensorflow
+
+# Tensorflow 1.15.0
+tensorflow=/usr/local/lib/$(python)/dist-packages/tensorflow_core
 
 # Todo: make above path to be found without hardcoding it, something like this:
 # tensorflow = $($(python) -c 'import tensorflow as tf; print(tf.sysconfig.get_lib())')
